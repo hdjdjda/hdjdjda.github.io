@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>兔兔丸机</title>
+    
+    <!-- 引入 Dexie.js 封装 IndexedDB -->
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+
+    <link rel="stylesheet" href="./app.css">
+
+
+    <meta name="theme-color" content="#FFF0F5">
+    <meta name="application-name" content="兔兔丸机">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="兔兔丸机">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./assets/icon-192.png">
+
+</head>
+<body class="tutuwan-app-body activation-locked" data-app-version="v0.0.6-complete-changelog">
+<div id="tutuwan-activation-gate" class="tutuwan-activation-gate" aria-live="polite">
+    <div class="tutuwan-activation-card">
+        <div class="tutuwan-activation-brand">
+            <img src="./assets/icon-192.png" alt="兔兔丸机图标" class="tutuwan-activation-icon">
+            <div>
+                <div class="tutuwan-activation-title">兔兔丸机激活验证</div>
+                <div class="tutuwan-activation-subtitle">此设备需要激活后才能进入应用</div>
+            </div>
+        </div>
+        <div class="tutuwan-device-box">
+            <label>当前设备码</label>
+            <div class="tutuwan-device-row">
+                <code id="tutuwan-device-code">正在生成设备码</code>
+                <button id="tutuwan-copy-device" type="button">复制</button>
+            </div>
+        </div>
+        <label class="tutuwan-activation-label" for="tutuwan-activation-code">激活码</label>
+        <input id="tutuwan-activation-code" class="tutuwan-activation-input" autocomplete="one-time-code" placeholder="Tutuwan-xxxx-xxxx-xxxx">
+        <button id="tutuwan-activate-btn" class="tutuwan-activation-button" type="button">验证并进入</button>
+        <div id="tutuwan-activation-message" class="tutuwan-activation-message"></div>
+        <div class="tutuwan-activation-hint">
+            激活码由生成器根据设备码生成。未完成验证时，应用内容会保持锁定。
+        </div>
+    </div>
+</div>
+
+<video id="theme-wallpaper-video" autoplay muted loop playsinline></video>
+
+<div class="mobile-container">
+
+    <!-- Top Wide Widget -->
+    <div class="top-widget-container">
+        <div class="top-widget">
+            <img src="https://picsum.photos/id/1025/150/150" class="avatar" id="avatar-img" alt="头像">
+            <div class="bubble-dot-1"></div>
+            <div class="bubble-dot-2"></div>
+            <div class="speech-bubble editable-text" id="text-speech">ovo</div>
+            
+            <div class="top-row">
+                <div class="flex" style="gap: 6px;">
+                    <div class="pill editable-text" id="text-temp">19°C</div>
+                    <div class="pill" id="battery-pill-text">70%</div>
+                </div>
+                <div class="flex top-right-icons items-center" style="gap: 6px;">
+                    <div class="top-right-icon-bg"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><circle cx="12" cy="20" r="1.5" stroke="none" fill="currentColor"></circle></svg></div>
+                    <div class="top-right-icon-bg">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="9" r="2" stroke="none" fill="currentColor"></circle>
+                            <path d="M8 5a6 6 0 0 0 0 8"></path>
+                            <path d="M16 5a6 6 0 0 1 0 8"></path>
+                            <path d="M5 2a10 10 0 0 0 0 14"></path>
+                            <path d="M19 2a10 10 0 0 1 0 14"></path>
+                            <line x1="12" y1="11" x2="12" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+                        </svg>
+                    </div>
+                    <div class="top-right-icon-bg"><svg viewBox="0 0 24 24"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline></svg></div>
+                </div>
+            </div>
+            
+            <div class="user-name-row">
+                <span class="editable-text" id="text-username" style="font-size: 14px; color: var(--gray-text); font-weight: 600;">点击编辑昵称</span>
+                <div style="font-size: 10px; padding: 2px 10px; background: #F6EEF1; color: var(--pink-dark); border-radius: 12px; font-weight: 500;">修改</div>
+            </div>
+            
+            <div class="dashed-divider"></div>
+            
+            <div class="flex justify-between items-center px-2">
+                <div class="bottom-action" id="home-profile-action" role="button" tabindex="0"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 修改資料</div>
+                <div class="bottom-action" id="home-level-action" role="button" tabindex="0"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> 我的等级</div>
+                <div class="bottom-action" id="home-save-photo-action" role="button" tabindex="0"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> 存為照片</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 坚不可摧的绝对方块基底网格 -->
+    <div class="grid-container">
+        
+        <!-- Left 2x2 Widget -->
+        <div class="cell-2x2">
+            <div class="cell-content-2x2 left-widget-card">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center" style="gap: 4px;">
+                        <span class="editable-text" id="text-left-title" style="font-size: 12px; font-weight: 600; color: var(--gray-text);">福熊兒</span>
+                        <svg viewBox="0 0 24 24" width="12" height="12" stroke="#F4A6C3" fill="none" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    </div>
+                    <div style="background: var(--pink-light); border-radius: 50%; width: 16px; height: 16px; display: flex; justify-content: center; align-items: center;">
+                        <svg viewBox="0 0 24 24" width="10" height="10" stroke="#FFF" stroke-width="3" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </div>
+                </div>
+                
+                <div style="font-size: 9px; color: var(--pink-text); text-align: center;">00:14 上午</div>
+                
+                <div class="lw-image-row">
+                    <svg id="lw-prev-btn" class="editable-text" viewBox="0 0 24 24" width="14" height="14" stroke="#E3C9D3" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M14 8l-4 4 4 4"/></svg>
+                    <div class="lw-img-wrap">
+                        <img src="https://picsum.photos/id/1062/200/200" id="left-widget-img" alt="photo">
+                    </div>
+                    <svg id="lw-next-btn" class="editable-text" viewBox="0 0 24 24" width="14" height="14" stroke="#E3C9D3" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l4 4-4 4"/></svg>
+                </div>
+                
+                <div class="flex justify-center items-center" style="gap: 4px; font-size: 9px; color: var(--pink-dark); margin-bottom: 6px; font-weight: 500;">
+                    <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span class="editable-text" id="text-left-sub">Kitty向您提出了好友申请</span>
+                </div>
+                
+                <div class="flex" style="gap: 6px;">
+                    <div id="left-widget-accept" role="button" tabindex="0" style="flex: 1; background: var(--pink-light); color: var(--pink-dark); text-align: center; font-size: 11px; font-weight: 600; padding: 6px 0; border-radius: 10px; cursor:pointer;">同意</div>
+                    <div id="left-widget-reject" role="button" tabindex="0" style="flex: 1; background: #F6EEF1; color: #9A8992; text-align: center; font-size: 11px; font-weight: 600; padding: 6px 0; border-radius: 10px; cursor:pointer;">拒绝</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 1 Apps -->
+        <div class="cell-1x1" id="btn-music"><div class="cell-content-1x1"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></div><div class="app-name">音乐</div></div>
+        <div class="cell-1x1" id="btn-chat">
+            <div class="cell-content-1x1">
+                <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-4.1-.98 1 1 0 0 0-.84.1l-2.7 1.4a.6.6 0 0 1-.86-.74l1.3-2.9a1 1 0 0 0-.1-.94A9 9 0 1 1 21 12z"></path></svg>
+            </div>
+            <div class="app-name">聊天</div>
+        </div>
+
+        <!-- Row 2 Apps -->
+        <div class="cell-1x1" id="btn-twitter"><div class="cell-content-1x1"><svg viewBox="0 0 24 24"><line x1="4" y1="4" x2="20" y2="20"></line><line x1="20" y1="4" x2="4" y2="20"></line></svg></div><div class="app-name">推特</div></div>
+        <div class="cell-1x1" id="btn-shop"><div class="cell-content-1x1"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></div><div class="app-name">购物</div></div>
+
+        <!-- Row 3 Apps -->
+        <div class="cell-1x1" id="btn-food-delivery"><div class="cell-content-1x1"><svg viewBox="0 0 24 24"><path d="M4 14.5A2.5 2.5 0 0 0 6.5 17h11a2.5 2.5 0 0 0 2.5-2.5v-2H4v2z"></path><path d="M12 4a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7z"></path><line x1="12" y1="2" x2="12" y2="4"></line></svg></div><div class="app-name">外卖</div></div>
+        <div class="cell-1x1" id="btn-peep-check"><div class="cell-content-1x1"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"></circle><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"></path></svg></div><div class="app-name">查岗</div></div>
+
+        <!-- Right 2x2 Widget -->
+        <div class="cell-2x2">
+            <div class="cell-content-2x2 right-widget-border">
+                <div class="right-widget-inner">
+                    <div class="flex justify-between items-center" style="height: 14px; margin-bottom: 6px; color: var(--pink-dark);">
+                        <div class="flex items-center" style="gap: 4px; font-size: 10px; font-weight: 600;">
+                            <span id="battery-widget-text">70%</span>
+                            <div style="width: 18px; height: 10px; border: 1.5px solid currentColor; border-radius: 4px; padding: 1px; display: flex; align-items: center;">
+                                <div id="battery-widget-fill" style="height: 100%; width: 70%; background: currentColor; border-radius: 1.5px; transition: width 0.3s ease;"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center" style="gap: 8px;">
+                            <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2.5">
+                                <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                                <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                                <circle cx="12" cy="20" r="1.5" stroke="none" fill="currentColor"></circle>
+                            </svg>
+                            <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2.5">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div style="position: absolute; top: 28px; bottom: 8px; left: 8px; right: 8px; border-radius: 12px; overflow: hidden;">
+                        <img src="https://picsum.photos/id/237/200/200" id="right-widget-img" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; cursor: pointer;" alt="dog">
+                        <div style="position: absolute; top: 6px; right: 6px; background: rgba(255,255,255,0.95); padding: 3px 6px; border-radius: 12px; font-size: 9px; color: var(--pink-dark); font-weight: 600;">
+                            <span class="editable-text" id="text-right-tag">呆呆嘟</span>
+                            <div style="position: absolute; bottom: -3px; left: 8px; width: 6px; height: 6px; background: rgba(255,255,255,0.95); border-radius: 50%; pointer-events: none;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="paw-circle">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="var(--pink-dark)">
+                        <circle cx="5.5" cy="10.5" r="2.2"/><circle cx="9.5" cy="6.5" r="2.5"/>
+                        <circle cx="14.5" cy="6.5" r="2.5"/><circle cx="18.5" cy="10.5" r="2.2"/>
+                        <path d="M12 12c-2.5 0-5.5 1.5-6.5 4.5-.5 1.5.5 3.5 2.5 4.5 1.5.5 3-.5 4-1.5 1 1 2.5 2 4 1.5 2-.5 3-2.5 2.5-4.5C17.5 13.5 14.5 12 12 12z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 4 Apps -->
+        <div class="cell-1x1" id="btn-peep-room"><div class="cell-content-1x1"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></div><div class="app-name">窥探</div></div>
+        <div class="cell-1x1" id="btn-couple-space"><div class="cell-content-1x1"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></div><div class="app-name">情侣空间</div></div>
+
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-bar" id="desktop-search-bar" role="button" tabindex="0" aria-label="搜索应用和联系人">
+            <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            搜索
+        </div>
+    </div>
+
+    <!-- 底部 Dock -->
+    <div class="dock-wrapper">
+        <div class="dock-container">
+            <div class="cell-1x1" id="btn-desktop-messages"><div class="cell-content-1x1 desktop-message-icon"><svg viewBox="0 0 24 24"><path d="M12 4C7.58 4 4 7.1 4 10.92c0 2.18 1.17 4.12 3 5.39l-.72 2.43c-.12.41.31.76.68.55l2.73-1.53c.73.18 1.5.28 2.31.28 4.42 0 8-3.1 8-6.92S16.42 4 12 4Z"></path></svg></div></div>
+            <div class="cell-1x1" id="btn-worldbook"><div class="cell-content-1x1"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div></div>
+            <div class="cell-1x1" id="btn-theme"><div class="cell-content-1x1"><svg viewBox="0 0 24 24"><path d="M21 3l-6 6"></path><path d="M21 3l-2 2"></path><path d="M3 21l6-6"></path><path d="M3 21l2-2"></path><path d="M10 14l4-4"></path><path d="M19 8l-4-4"></path></svg></div></div>
+            <!-- 设置应用按钮 -->
+            <div class="cell-1x1" id="btn-settings"><div class="cell-content-1x1"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div></div>
+        </div>
+    </div>
+
+    <!-- 优化版设置面板叠加层 -->
+    <div id="settings-page" class="settings-page-overlay">
+        <div class="settings-header">
+            <svg id="close-settings-btn" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.5" style="margin-right: 12px; cursor: pointer;">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>设置中心</span>
+        </div>
+        <div class="settings-content">
+            <!-- 聊天 API -->
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    聊天 API
+                    <span class="help-icon" onclick="openHelpModal('chat')">?</span>
+                </h4>
+                <div class="settings-row-horizontal">
+                    <select class="settings-select" id="chat-preset-select" style="flex: 1;">
+                        <option value="default">默认预设</option>
+                    </select>
+                    <button class="icon-btn" id="chat-preset-save" title="保存预设"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
+                    <button class="icon-btn" id="chat-preset-delete" title="删除预设" style="color: #E57373; background: #FFECEC; border-color: #FFE0E0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">接口网址（OpenAI 兼容基础地址，填写到 /v1）</span>
+                    <input type="text" id="chat-url-input" class="settings-input" placeholder="https://api.openai.com/v1">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">API Key</span>
+                    <input type="password" id="chat-key-input" class="settings-input" placeholder="sk-...">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">模型选择</span>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="chat-model-input" class="settings-input" value="gpt-3.5-turbo" placeholder="点击后可直接输入模型名，如 gpt-4o" style="flex: 1;">
+                        <datalist id="chat-model-list"></datalist>
+                        <button class="icon-btn" id="chat-fetch-models-btn" title="拉取模型"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"></path></svg></button>
+                    </div>
+                </div>
+                <div class="settings-row" style="margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span class="settings-label">温度 (Temperature)</span>
+                        <span class="settings-label" id="temp-val-display" style="color: var(--pink-dark); font-size: 14px;">0.7</span>
+                    </div>
+                    <input type="range" id="chat-temperature" min="0" max="2" step="0.1" value="0.7">
+                </div>
+                <div class="settings-row" style="margin-top: 10px;">
+                    <span class="settings-label">上下文数量</span>
+                    <input type="number" id="chat-context-input" class="settings-input" value="30" min="0">
+                </div>
+            </div>
+
+            <!-- 语音 API -->
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                    语音 API
+                    <span class="help-icon" onclick="openHelpModal('voice')">?</span>
+                </h4>
+                <div class="settings-row-horizontal">
+                    <select class="settings-select" id="voice-preset-select" style="flex: 1;">
+                        <option value="default">默认预设</option>
+                    </select>
+                    <button class="icon-btn" id="voice-preset-save" title="保存预设"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
+                    <button class="icon-btn" id="voice-preset-delete" title="删除预设" style="color: #E57373; background: #FFECEC; border-color: #FFE0E0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">接口网址（MiniMax 官方同步语音：/v1/t2a_v2）</span>
+                    <input type="text" id="voice-url-input" class="settings-input" placeholder="https://api.minimax.io/v1">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">API Key</span>
+                    <input type="password" id="voice-key-input" class="settings-input" placeholder="sk-...">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">GROUP ID</span>
+                    <input type="text" id="voice-group-input" class="settings-input" placeholder="输入 Group ID，如 anime_female">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">VOICE ID</span>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="voice-id-input" class="settings-input" placeholder="输入 Voice ID，如 tutumaru_01" style="flex: 1;">
+                        <button class="icon-btn" id="voice-test-btn" title="试听声音"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据管理 -->
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                    数据管理
+                    <span class="help-icon" onclick="openHelpModal('github')">?</span>
+                </h4>
+                
+                <!-- Github 配置区域 -->
+                <div style="background: #FFF8FA; border: 1.5px dashed #FCE8EF; border-radius: 16px; padding: 14px; margin-bottom: 16px;">
+                    <div class="settings-row" style="margin-bottom: 10px;">
+                        <span class="settings-label">GitHub Token</span>
+                        <input type="password" id="github-token-input" class="settings-input" placeholder="ghp_xxxxxxxxxxxx" style="background: #FFF;">
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <div class="settings-row" style="flex: 1; margin-bottom: 0;">
+                            <span class="settings-label">GitHub 用户名</span>
+                            <input type="text" id="github-user-input" class="settings-input" placeholder="Username" style="background: #FFF;">
+                        </div>
+                        <div class="settings-row" style="flex: 1; margin-bottom: 0;">
+                            <span class="settings-label">存储仓库名</span>
+                            <input type="text" id="github-repo-input" class="settings-input" placeholder="Repo Name" style="background: #FFF;">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button class="action-btn primary" id="github-backup-btn" style="grid-column: span 2;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle; margin-right: 4px; margin-top: -2px;"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                        一键 Github 备份
+                    </button>
+                    <button class="action-btn" id="export-data-btn">导出数据</button>
+                    <button class="action-btn" id="export-batch-btn">批量导出</button>
+                    <button class="action-btn" id="import-data-btn">导入数据</button>
+                    <button class="action-btn" id="import-batch-btn">批量导入</button>
+                    <button class="action-btn danger" id="clear-data-btn" style="grid-column: span 2;">清除所有数据</button>
+                </div>
+            </div>
+
+            <!-- 免责声明 (换行分段) -->
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.5h.01"></path></svg>
+                    免责声明
+                </h4>
+                <div style="font-size: 11px; color: #888; line-height: 1.65; text-align: justify; padding: 4px; letter-spacing: 0.3px;">
+                    <p>本应用程序（含所有相关服务、功能及提供的数据）仅作为展示与测试用途。开发者不对用户所填写、提交、处理或存储的任何数据的安全性、准确性及可靠性作任何形式的保证。</p>
+                    <p style="margin-top: 6px;">您在使用过程中连接的第三方 API（包括但不限于聊天API及语音API）所产生的任何费用、数据泄露及滥用风险，均由使用者自行承担。本软件不对因使用本程序或其衍生物所导致的直接或间接损失负任何法律责任。</p>
+                    <p style="margin-top: 6px;">用户须遵守所在国家和地区的法律法规，禁止使用本程序进行任何违法违规操作。由于本程序产生的内容均由调用的第三方人工智能模型提供，程序本身不涉及任何核心数据或算法的存储与运算，不对其生成的内容合法性、道德性及正确性负责。</p>
+                    <p style="margin-top: 6px;">若有任何违反政策的风险由使用者自行规避。继续使用本应用即表示您已充分阅读、理解并完全同意本免责声明的全部条款及潜在风险。</p>
+                </div>
+            </div>
+
+            <!-- 版本号 -->
+            <div style="text-align: center; color: #C2B6BC; font-size: 11px; margin-top: 24px; font-weight: 500;">
+                版本 0.0.6 · 完整完善版
+            </div>
+        </div>
+        <input type="file" id="settings-import-file" class="hidden-file-input" accept="application/json,.json">
+        <input type="file" id="settings-batch-import-file" class="hidden-file-input" accept="application/json,.json" multiple>
+        
+        <!-- 全局吐司提示 -->
+        <div id="toast-msg" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #FFF; padding: 12px 20px; border-radius: 20px; font-size: 13px; z-index: 10001; display: none; transition: opacity 0.3s; opacity: 0; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            兔兔丸提示：语音测试成功~
+        </div>
+    </div>
+
+    <!-- 世界书应用：底部 Dock 第二个图标入口 -->
+    <div id="worldbook-page" class="settings-page-overlay worldbook-page-overlay">
+        <div class="settings-header">
+            <svg id="worldbook-back-btn" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.5" style="margin-right: 12px; cursor: pointer;">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span id="worldbook-header-title">世界书</span>
+            <div class="worldbook-header-actions">
+                <button class="worldbook-icon-btn" id="worldbook-add-btn" title="添加" aria-label="添加">
+                    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                <button class="worldbook-icon-btn" id="worldbook-manage-btn" title="管理" aria-label="管理">
+                    <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="18" x2="20" y2="18"></line><circle cx="8" cy="6" r="2"></circle><circle cx="16" cy="12" r="2"></circle><circle cx="10" cy="18" r="2"></circle></svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="worldbook-group-view" class="settings-content">
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    世界书分组
+                </h4>
+                <p class="worldbook-subtitle">点击右上角添加图标创建世界书；点击分组进入条目页，管理图标可切换删除状态。</p>
+                <div id="worldbook-group-list" class="worldbook-list"></div>
+                <div id="worldbook-group-empty" class="worldbook-empty">暂无世界书分组<br>点击右上角添加图标创建第一个世界书</div>
+            </div>
+        </div>
+
+        <div id="worldbook-entry-view" class="settings-content" style="display: none;">
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
+                    条目列表
+                </h4>
+                <p class="worldbook-subtitle">点击右上角添加图标进入条目页；条目名可不填，保存时默认命名为「条目」。</p>
+                <div id="worldbook-entry-list" class="worldbook-list"></div>
+                <div id="worldbook-entry-empty" class="worldbook-empty">暂无条目<br>点击右上角添加图标新建世界书条目</div>
+            </div>
+        </div>
+
+        <div id="worldbook-editor-view" class="settings-content" style="display: none;">
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                    条目设置
+                </h4>
+                <div class="settings-row">
+                    <span class="settings-label">条目名</span>
+                    <input type="text" id="worldbook-entry-name" class="settings-input" placeholder="可不填，默认「条目」">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">世界书类型</span>
+                    <div class="worldbook-segment" id="worldbook-entry-scope">
+                        <button type="button" data-value="global" class="active">全局世界书</button>
+                        <button type="button" data-value="character">角色世界书</button>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">生效方式</span>
+                    <div class="worldbook-segment" id="worldbook-entry-trigger">
+                        <button type="button" data-value="always" class="active">始终生效</button>
+                        <button type="button" data-value="keyword">关键词生效</button>
+                    </div>
+                </div>
+                <div class="settings-row" id="worldbook-keyword-wrap" style="display: none;">
+                    <span class="settings-label">关键词</span>
+                    <input type="text" id="worldbook-entry-keywords" class="settings-input worldbook-keyword-input" placeholder="多个关键词用逗号或换行分隔">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">注入位置</span>
+                    <div class="worldbook-segment three" id="worldbook-entry-position">
+                        <button type="button" data-value="before" class="active">前</button>
+                        <button type="button" data-value="middle">中</button>
+                        <button type="button" data-value="after">后</button>
+                    </div>
+                    <div id="worldbook-position-help" class="worldbook-position-help">前：API 以正文为基础思考输出</div>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">条目正文</span>
+                    <textarea id="worldbook-entry-content" class="worldbook-textarea" placeholder="输入世界书条目正文..."></textarea>
+                </div>
+                <div class="worldbook-editor-actions">
+                    <button class="action-btn" id="worldbook-cancel-entry-btn">取消</button>
+                    <button class="action-btn primary" id="worldbook-save-entry-btn">保存条目</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 情侣空间应用：联系人联动 / 动态 / 相册 / 日历 / 信箱 / 问答 / 心情 -->
+    <div id="couple-app-page" aria-hidden="true">
+        <div class="couple-bg-soft" id="couple-bg-soft"></div>
+        <div class="couple-app-shell">
+            <header class="couple-header">
+                <button class="couple-icon-btn" id="couple-close-btn" type="button" aria-label="返回"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                <div class="couple-title-stack">
+                    <div class="couple-title" id="couple-header-title">情侣空间</div>
+                    <div class="couple-subtitle" id="couple-header-subtitle">选择联系人建立空间</div>
+                </div>
+                <button class="couple-icon-btn" id="couple-refresh-btn" type="button" aria-label="刷新"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><polyline points="18 2 18.5 5.8 14.8 6.3"></polyline><polyline points="6 22 5.5 18.2 9.2 17.7"></polyline></svg></button>
+                <button class="couple-icon-btn" id="couple-settings-btn" type="button" aria-label="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.31.23.65.23 1H21a2 2 0 0 1 0 4h-1.37c0 .35-.09.69-.23 1z"></path></svg></button>
+            </header>
+
+            <main class="couple-selector-view" id="couple-selector-view">
+                <div class="couple-selector-hero">
+                    <div class="couple-kicker">PRIVATE SPACE</div>
+                    <h2>选择一个 char，建立独立情侣空间</h2>
+                    <p>情侣空间会读取联系人设定、user 设定、共同聊天记忆和世界书，生成符合人设的动态、评论、信件、提问与心情记录。</p>
+                </div>
+                <div id="couple-selector-list" class="couple-selector-list"></div>
+            </main>
+
+            <main class="couple-dashboard-view" id="couple-dashboard-view">
+                <section class="couple-top-card" id="couple-top-card">
+                    <div class="couple-pair-row">
+                        <div class="couple-avatar-pair">
+                            <img id="couple-user-avatar" alt="user">
+                            <img id="couple-char-avatar" alt="char">
+                        </div>
+                        <div class="couple-pair-meta">
+                            <div id="couple-pair-name" class="couple-pair-name">user 与 char</div>
+                            <div id="couple-pair-note" class="couple-pair-note">恋爱记录正在同步</div>
+                        </div>
+                    </div>
+                    <button class="couple-days-card" id="couple-days-card" type="button">
+                        <span>在一起</span>
+                        <b id="couple-days-num">1</b>
+                        <span id="couple-start-date-label">点击修改纪念日</span>
+                    </button>
+                    <input type="date" id="couple-start-date-input" class="couple-hidden-date">
+                </section>
+
+                <nav class="couple-tabbar" id="couple-tabbar">
+                    <button class="active" type="button" data-couple-tab="moments">动态</button>
+                    <button type="button" data-couple-tab="album">相册</button>
+                    <button type="button" data-couple-tab="calendar">日历</button>
+                    <button type="button" data-couple-tab="letters">信箱</button>
+                    <button type="button" data-couple-tab="questions">问答</button>
+                    <button type="button" data-couple-tab="moods">心情</button>
+                </nav>
+
+                <section class="couple-tab-content active" id="couple-tab-moments">
+                    <div class="couple-section-head"><div><h3>恋爱动态</h3><p>可发布悄悄话，char 会按人设评论或主动发动态</p></div><button class="couple-small-btn" id="couple-ai-post-btn" type="button">生成动态</button></div>
+                    <div id="couple-moments-list" class="couple-feed-list"></div>
+                </section>
+                <section class="couple-tab-content" id="couple-tab-album">
+                    <div class="couple-section-head"><div><h3>共同相册</h3><p>保存本地上传的照片，可点开预览</p></div><button class="couple-small-btn" id="couple-album-upload-btn" type="button">上传照片</button></div>
+                    <input type="file" id="couple-album-input" class="couple-hidden-file" accept="image/*" multiple>
+                    <div id="couple-album-grid" class="couple-album-grid"></div>
+                </section>
+                <section class="couple-tab-content" id="couple-tab-calendar">
+                    <div class="couple-cal-header">
+                        <button class="couple-icon-btn mini" type="button" data-couple-month="-1"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                        <div id="couple-calendar-title" class="couple-calendar-title">本月</div>
+                        <button class="couple-icon-btn mini" type="button" data-couple-month="1"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+                    </div>
+                    <div class="couple-week-row"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+                    <div id="couple-calendar-grid" class="couple-calendar-grid"></div>
+                    <div class="couple-calendar-legend"><span class="period">经期</span><span class="predict">预测</span><span class="ovulation">排卵</span><span class="date">约会</span><span class="special">纪念</span></div>
+                </section>
+                <section class="couple-tab-content" id="couple-tab-letters">
+                    <div class="couple-section-head"><div><h3>秘密信箱</h3><p>写长信、保存草稿、索要 char 回信</p></div><button class="couple-small-btn" id="couple-ask-letter-btn" type="button">索要来信</button></div>
+                    <div id="couple-letters-list" class="couple-letter-list"></div>
+                </section>
+                <section class="couple-tab-content" id="couple-tab-questions">
+                    <div class="couple-section-head"><div><h3>每日一问</h3><p>互相提问，回答会同步进情侣空间记忆</p></div><button class="couple-small-btn" id="couple-char-question-btn" type="button">让TA提问</button></div>
+                    <div id="couple-questions-list" class="couple-question-list"></div>
+                </section>
+                <section class="couple-tab-content" id="couple-tab-moods">
+                    <div class="couple-section-head"><div><h3>心情记录</h3><p>记录双方状态，char 可模拟离线生活心情</p></div><button class="couple-small-btn" id="couple-ai-mood-btn" type="button">生成TA心情</button></div>
+                    <div id="couple-moods-list" class="couple-mood-list"></div>
+                </section>
+            </main>
+
+            <button id="couple-fab" class="couple-fab" type="button" aria-label="新增"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+
+        <div id="couple-compose-modal" class="couple-modal" aria-hidden="true">
+            <div class="couple-modal-card">
+                <div class="couple-modal-title" id="couple-compose-title">发布</div>
+                <input id="couple-compose-title-input" class="couple-input" placeholder="标题，可留空">
+                <textarea id="couple-compose-text" class="couple-textarea" placeholder="写下内容"></textarea>
+                <div class="couple-modal-actions"><button class="couple-ghost-btn" id="couple-compose-cancel" type="button">取消</button><button class="couple-primary-btn" id="couple-compose-submit" type="button">保存</button></div>
+            </div>
+        </div>
+
+        <div id="couple-period-modal" class="couple-modal" aria-hidden="true">
+            <div class="couple-modal-card compact">
+                <div class="couple-modal-title" id="couple-period-title">标记日期</div>
+                <div class="couple-period-actions">
+                    <button type="button" data-couple-period="period">经期</button>
+                    <button type="button" data-couple-period="predict">预测</button>
+                    <button type="button" data-couple-period="ovulation">排卵</button>
+                    <button type="button" data-couple-period="date">约会</button>
+                    <button type="button" data-couple-period="special">纪念</button>
+                    <button type="button" data-couple-period="">清除</button>
+                </div>
+                <div class="couple-modal-actions"><button class="couple-ghost-btn" id="couple-period-cancel" type="button">关闭</button></div>
+            </div>
+        </div>
+
+        <div id="couple-mood-modal" class="couple-modal" aria-hidden="true">
+            <div class="couple-modal-card">
+                <div class="couple-modal-title">记录心情</div>
+                <div id="couple-mood-options" class="couple-mood-options"></div>
+                <textarea id="couple-mood-text" class="couple-textarea small" placeholder="补一句今天的状态，可留空"></textarea>
+                <div class="couple-modal-actions"><button class="couple-ghost-btn" id="couple-mood-cancel" type="button">取消</button><button class="couple-primary-btn" id="couple-mood-submit" type="button">保存</button></div>
+            </div>
+        </div>
+
+        <div id="couple-settings-modal" class="couple-modal" aria-hidden="true">
+            <div class="couple-modal-card settings">
+                <div class="couple-modal-title">情侣空间设置</div>
+                <label class="couple-field"><span>空间背景 URL</span><input id="couple-bg-url" class="couple-input" placeholder="留空使用默认背景"></label>
+                <label class="couple-field"><span>顶部卡片背景 URL</span><input id="couple-card-url" class="couple-input" placeholder="留空使用默认卡片"></label>
+                <div class="couple-file-actions"><button class="couple-ghost-btn" id="couple-bg-file-btn" type="button">上传背景</button><button class="couple-ghost-btn" id="couple-card-file-btn" type="button">上传卡片图</button></div>
+                <input type="file" id="couple-bg-file" class="couple-hidden-file" accept="image/*">
+                <input type="file" id="couple-card-file" class="couple-hidden-file" accept="image/*">
+                <div class="couple-danger-zone">
+                    <button class="couple-ghost-btn danger" id="couple-clear-data-btn" type="button">清空记录</button>
+                    <button class="couple-ghost-btn danger" id="couple-breakup-btn" type="button">解除关系</button>
+                </div>
+                <div class="couple-modal-actions"><button class="couple-ghost-btn" id="couple-settings-cancel" type="button">取消</button><button class="couple-primary-btn" id="couple-settings-save" type="button">保存设置</button></div>
+            </div>
+        </div>
+
+        <div id="couple-preview-modal" class="couple-modal" aria-hidden="true">
+            <div class="couple-preview-card">
+                <button class="couple-preview-close" id="couple-preview-close" type="button">×</button>
+                <img id="couple-preview-img" alt="照片预览">
+                <div id="couple-preview-caption" class="couple-preview-caption"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+    <!-- 购物应用：完整新页面，主题 UI / 资产钱包 / 无 emoji -->
+    <div id="shop-app-page" aria-hidden="true">
+        <div class="shop-page-header">
+            <button class="shop-icon-btn" id="shop-close-btn" aria-label="返回"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="shop-title-stack">
+                <div class="shop-title" id="shop-page-title">购物中心</div>
+                <div class="shop-subtitle" id="shop-page-subtitle">资产钱包直连</div>
+            </div>
+            <button class="shop-icon-btn" id="shop-style-btn" aria-label="进货设定"><svg viewBox="0 0 24 24"><path d="M4 21v-7"></path><path d="M4 10V3"></path><path d="M12 21v-9"></path><path d="M12 8V3"></path><path d="M20 21v-5"></path><path d="M20 12V3"></path><path d="M2 14h4"></path><path d="M10 8h4"></path><path d="M18 16h4"></path></svg></button>
+            <button class="shop-icon-btn" id="shop-refresh-btn" aria-label="刷新商品"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><polyline points="18 2 18.5 5.8 14.8 6.3"></polyline><polyline points="6 22 5.5 18.2 9.2 17.7"></polyline></svg></button>
+        </div>
+        <div class="shop-search-wrap">
+            <div class="shop-search-box"><input id="shop-search-input" type="search" placeholder="搜索商品 / 礼物 / 道具"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#A99AA2;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.35-4.35"></path></svg></div>
+        </div>
+        <div class="shop-cat-strip" id="shop-cat-nav"></div>
+        <div class="shop-content">
+            <section class="shop-panel active" id="shop-view-home">
+                <div class="shop-hero-card">
+                    <div class="shop-hero-kicker">TUTUWAN SHOP</div>
+                    <div class="shop-hero-title">主题商店<br>钱包直连</div>
+                    <div class="shop-hero-desc">购买从资产钱包扣款，退款和回收自动入账；商品进入订单和背包，可继续送给联系人。</div>
+                </div>
+                <div class="shop-mini-stats">
+                    <div class="shop-mini-card"><b id="shop-stat-products">0</b><span>在售商品</span></div>
+                    <div class="shop-mini-card"><b id="shop-stat-cart">0</b><span>购物车</span></div>
+                    <div class="shop-mini-card"><b id="shop-stat-wallet">¥0.00</b><span>钱包余额</span></div>
+                </div>
+                <div class="shop-product-grid" id="shop-product-grid"></div>
+            </section>
+            <section class="shop-panel" id="shop-view-cart">
+                <div class="shop-section-head"><div><h2>购物车</h2><p>加减数量、移除商品、代付或直接结算</p></div><button class="shop-ghost-btn" id="shop-clear-cart-btn">清空</button></div>
+                <div class="shop-list" id="shop-cart-list"></div>
+                <div class="shop-cart-footer">
+                    <div><div style="font-size:11px;color:var(--shop-muted);font-weight:800;">合计</div><div class="shop-price" id="shop-cart-total"><small>¥</small>0.00</div></div>
+                    <button class="shop-ghost-btn" id="shop-daifu-btn">找人代付</button>
+                    <button class="shop-main-btn" id="shop-checkout-btn">去结算</button>
+                </div>
+            </section>
+            <section class="shop-panel" id="shop-view-orders">
+                <div class="shop-section-head"><div><h2>我的订单</h2><p>购物、送礼和代付请求都会记录在这里</p></div></div>
+                <div class="shop-list" id="shop-order-list"></div>
+            </section>
+            <section class="shop-panel" id="shop-view-profile">
+                <div class="shop-profile-card">
+                    <div class="shop-profile-avatar"><span class="shop-profile-mark shop-art-tile shop-art-gift" style="--shop-art-a:#FFF0F5;--shop-art-b:#FCE8EF;--shop-art-c:#D4A5B9;--shop-art-d:#FFFFFF;" aria-hidden="true"><i></i><b></b></span></div>
+                    <div><div class="shop-profile-name" id="shop-profile-name">User</div><div class="shop-profile-meta">资产钱包 <b id="shop-balance-text">¥0.00</b> · <span id="shop-style-text">兔兔严选</span></div></div>
+                </div>
+                <div class="shop-wallet-card">
+                    <div>
+                        <div class="shop-wallet-label">资产钱包余额</div>
+                        <div class="shop-wallet-amount" id="shop-wallet-balance">¥0.00</div>
+                        <div class="shop-wallet-tip">购物扣款、退款、背包回收都会同步到账单。</div>
+                    </div>
+                    <div class="shop-wallet-actions">
+                        <button class="shop-main-btn" id="shop-wallet-recharge-btn" type="button">充值</button>
+                        <button class="shop-ghost-btn" id="shop-wallet-open-btn" type="button">钱包</button>
+                    </div>
+                </div>
+                <div class="shop-section-head"><div><h2>我的背包</h2><p>点击物品可送人、回收或丢弃</p></div></div>
+                <div class="shop-inventory-grid" id="shop-inventory-list"></div>
+            </section>
+        </div>
+        <nav class="shop-bottom-nav">
+            <button class="shop-nav-btn active" data-shop-tab="home"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>首页</span></button>
+            <button class="shop-nav-btn" data-shop-tab="cart"><span class="shop-badge" id="shop-cart-badge">0</span><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg><span>购物车</span></button>
+            <button class="shop-nav-btn" data-shop-tab="orders"><svg viewBox="0 0 24 24"><path d="M7 3h10l2 3v15l-3-2-3 2-3-2-3 2V6Z"></path><path d="M9 10h6"></path><path d="M9 14h5"></path></svg><span>订单</span></button>
+            <button class="shop-nav-btn" data-shop-tab="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>我的</span></button>
+        </nav>
+    </div>
+
+    <div id="shop-detail-modal" class="shop-modal" aria-hidden="true">
+        <div class="shop-modal-card">
+            <button class="shop-detail-close" id="shop-detail-close" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+            <div class="shop-detail-scroll" id="shop-detail-content"></div>
+            <div class="shop-detail-footer">
+                <div class="shop-price" id="shop-detail-price"><small>¥</small>0.00</div>
+                <button class="shop-ghost-btn" id="shop-detail-buy">立即购买</button>
+                <button class="shop-ghost-btn" id="shop-detail-gift">送人</button>
+                <button class="shop-main-btn" id="shop-detail-add">加入购物车</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="shop-action-modal" class="shop-modal shop-action-modal" aria-hidden="true">
+        <div class="shop-modal-card">
+            <div class="shop-contact-header">
+                <div class="shop-contact-title" id="shop-action-title">选择联系人</div>
+                <button class="shop-icon-btn" id="shop-action-close" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+            </div>
+            <div class="shop-contact-body" id="shop-action-content"></div>
+        </div>
+    </div>
+
+
+    <!-- 外卖应用：真实外卖 APP 风格 / 商家刷新 / 店铺菜单 / 资产钱包 / char 代点代付 -->
+    <div id="food-app-page" aria-hidden="true">
+        <div class="food-page-header">
+            <button class="food-icon-btn" id="food-close-btn" aria-label="返回"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="food-title-stack">
+                <div class="food-title" id="food-page-title">外卖</div>
+                <div class="food-subtitle" id="food-page-subtitle">附近商家 · 准时送达</div>
+            </div>
+            <button class="food-icon-btn" id="food-address-btn" aria-label="配送地址"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"></path><circle cx="12" cy="9" r="2.4"></circle></svg></button>
+            <button class="food-icon-btn" id="food-refresh-btn" aria-label="刷新商家"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><polyline points="18 2 18.5 5.8 14.8 6.3"></polyline><polyline points="6 22 5.5 18.2 9.2 17.7"></polyline></svg></button>
+        </div>
+        <div class="food-search-wrap">
+            <div class="food-search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.35-4.35"></path></svg><input id="food-search-input" type="search" placeholder="搜索商家 / 菜品 / 口味"></div>
+        </div>
+        <div class="food-content">
+            <section class="food-panel active" id="food-view-home">
+                <div class="food-hero-card">
+                    <div><div class="food-hero-kicker">TUTUWAN DELIVERY</div><div class="food-hero-title">今天想吃什么</div><div class="food-hero-desc" id="food-address-text">配送到：当前设备定位</div></div>
+                    <div class="food-hero-wallet"><span>钱包余额</span><b id="food-wallet-pill">¥0.00</b></div>
+                </div>
+                <div class="food-filter-strip" id="food-filter-nav"></div>
+                <div class="food-section-head"><div><h2>推荐商家</h2><p id="food-update-text">点击刷新读取角色设定生成附近商家</p></div><button class="food-lite-btn" id="food-sort-btn" type="button">智能排序</button></div>
+                <div class="food-merchant-list" id="food-merchant-list"></div>
+            </section>
+            <section class="food-panel" id="food-view-orders">
+                <div class="food-section-head"><div><h2>外卖订单</h2><p>购买、帮 char 点、让 char 代付都会记录在这里</p></div></div>
+                <div class="food-order-list" id="food-order-list"></div>
+            </section>
+            <section class="food-panel" id="food-view-profile">
+                <div class="food-profile-card">
+                    <div class="food-profile-icon"><span></span></div>
+                    <div><div class="food-profile-name" id="food-profile-name">User</div><div class="food-profile-meta">资产钱包 <b id="food-profile-wallet">¥0.00</b></div></div>
+                </div>
+                <div class="food-address-card"><div><b>配送地址</b><span id="food-profile-address">当前设备定位</span></div><button class="food-main-btn small" id="food-profile-address-btn" type="button">修改</button></div>
+                <div class="food-coupon-grid">
+                    <div><b id="food-stat-merchants">0</b><span>附近商家</span></div>
+                    <div><b id="food-stat-orders">0</b><span>历史订单</span></div>
+                    <div><b id="food-stat-coupons">3</b><span>可用券</span></div>
+                </div>
+                <div class="food-profile-actions"><button class="food-main-btn" id="food-wallet-recharge-btn" type="button">充值</button><button class="food-ghost-btn" id="food-wallet-open-btn" type="button">打开钱包</button></div>
+            </section>
+        </div>
+        <nav class="food-bottom-nav">
+            <button class="food-nav-btn active" data-food-tab="home"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>首页</span></button>
+            <button class="food-nav-btn" data-food-tab="orders"><svg viewBox="0 0 24 24"><path d="M7 3h10l2 3v15l-3-2-3 2-3-2-3 2V6Z"></path><path d="M9 10h6"></path><path d="M9 14h5"></path></svg><span>订单</span></button>
+            <button class="food-nav-btn" data-food-tab="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>我的</span></button>
+        </nav>
+    </div>
+
+    <div id="food-store-layer" aria-hidden="true">
+        <div class="food-store-header">
+            <button class="food-icon-btn" id="food-store-back" aria-label="返回"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="food-title-stack"><div class="food-title" id="food-store-title">商家</div><div class="food-subtitle" id="food-store-subtitle">点餐中</div></div>
+            <button class="food-icon-btn" id="food-store-fav" aria-label="收藏"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path></svg></button>
+        </div>
+        <div class="food-store-scroll" id="food-store-content"></div>
+        <div class="food-cart-bar" id="food-cart-bar">
+            <div><span id="food-cart-count">0 件</span><b id="food-cart-total">¥0.00</b></div>
+            <button class="food-ghost-btn" id="food-clear-cart-btn" type="button">清空</button>
+            <button class="food-ghost-btn" id="food-order-char-btn" type="button">帮char点</button>
+            <button class="food-ghost-btn" id="food-pay-char-btn" type="button">让char代付</button>
+            <button class="food-main-btn" id="food-checkout-btn" type="button">购买</button>
+        </div>
+    </div>
+
+    <div id="food-contact-modal" class="food-modal" aria-hidden="true">
+        <div class="food-modal-card">
+            <div class="food-modal-header"><div id="food-contact-title">选择联系人</div><button class="food-icon-btn" id="food-contact-close" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div>
+            <div class="food-contact-list" id="food-contact-list"></div>
+        </div>
+    </div>
+
+
+    <!-- Twitter / X 应用：桌面推特图标入口 -->
+    <div id="twitter-app-page" aria-hidden="true">
+        <div class="twitter-header">
+            <button class="twitter-icon-btn" id="twitter-close-btn" aria-label="返回"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="twitter-title-stack"><div class="twitter-title" id="twitter-page-title">主页</div><div class="twitter-subtitle" id="twitter-page-subtitle">为你推荐</div></div>
+            <button class="twitter-icon-btn" id="twitter-refresh-btn" aria-label="刷新推文"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><polyline points="18 2 18.5 5.8 14.8 6.3"></polyline><polyline points="6 22 5.5 18.2 9.2 17.7"></polyline></svg></button>
+            <button class="twitter-icon-btn" id="twitter-settings-btn" aria-label="推特设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 0 1-4 0v-.08A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3a2 2 0 0 1 0-4h.08A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6c.35-.14.62-.34.82-.6.2-.25.3-.62.3-1V3a2 2 0 0 1 4 0v.08c0 .38.1.75.3 1 .2.26.47.46.82.6a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.14.35.34.62.6.82.25.2.62.3 1 .3H21a2 2 0 0 1 0 4h-.08c-.38 0-.75.1-1 .3-.26.2-.46.47-.6.82Z"></path></svg></button>
+        </div>
+        <div class="twitter-content">
+            <section class="twitter-tab-panel active" id="twitter-tab-home"></section>
+            <section class="twitter-tab-panel" id="twitter-tab-explore"></section>
+            <section class="twitter-tab-panel" id="twitter-tab-notifications"></section>
+            <section class="twitter-tab-panel" id="twitter-tab-messages"></section>
+            <section class="twitter-tab-panel" id="twitter-tab-profile"></section>
+        </div>
+        <button class="twitter-compose-fab" id="twitter-compose-fab" aria-label="发布推文"><svg viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+        <nav class="twitter-bottom-nav">
+            <button class="twitter-nav-btn active" data-twitter-tab="home"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>主页</span></button>
+            <button class="twitter-nav-btn" data-twitter-tab="explore"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.35-4.35"></path></svg><span>搜索</span></button>
+            <button class="twitter-nav-btn" data-twitter-tab="notifications"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span>通知</span></button>
+            <button class="twitter-nav-btn" data-twitter-tab="messages"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg><span>私信</span></button>
+            <button class="twitter-nav-btn" data-twitter-tab="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>我的</span></button>
+        </nav>
+    </div>
+
+    <div id="twitter-compose-modal" class="twitter-modal" aria-hidden="true">
+        <div class="twitter-modal-card">
+            <div class="twitter-modal-header"><button class="twitter-icon-btn" id="twitter-compose-close" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button><div class="twitter-modal-title">新推文</div><button class="twitter-post-btn" id="twitter-compose-send">发布</button></div>
+            <div class="twitter-modal-body">
+                <div class="twitter-compose-area"><img class="twitter-avatar" id="twitter-compose-avatar" alt="avatar"><div><textarea id="twitter-compose-text" class="twitter-compose-textarea" placeholder="有什么新鲜事？"></textarea><div class="twitter-image-preview" id="twitter-image-preview"><img id="twitter-image-preview-img" alt="preview"><button class="twitter-remove-image" id="twitter-remove-image" type="button">×</button></div></div></div>
+                <div class="twitter-compose-tools"><div class="twitter-tool-row"><button class="twitter-tool-btn" id="twitter-image-url-btn" type="button" aria-label="图片 URL"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="8.5" cy="10" r="1.5"></circle><path d="M21 16l-5-5-11 8"></path></svg></button><button class="twitter-tool-btn" id="twitter-image-file-btn" type="button" aria-label="本地图片"><svg viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button></div><span id="twitter-compose-count" style="color:#536471;font-size:12px;font-weight:800;">0/280</span></div>
+                <input type="file" id="twitter-image-file-input" class="hidden-file-input" accept="image/*">
+            </div>
+        </div>
+    </div>
+
+    <div id="twitter-detail-modal" class="twitter-modal twitter-detail-modal" aria-hidden="true">
+        <div class="twitter-modal-card">
+            <div class="twitter-modal-header"><button class="twitter-icon-btn" id="twitter-detail-close" aria-label="关闭"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button><div class="twitter-modal-title">推文</div><span style="width:42px"></span></div>
+            <div class="twitter-detail-list" id="twitter-detail-list"></div>
+            <div class="twitter-reply-box"><img class="twitter-avatar small" id="twitter-reply-avatar" alt="avatar"><div><textarea class="twitter-reply-input" id="twitter-reply-input" placeholder="发布你的回复"></textarea><button class="twitter-reply-send" id="twitter-reply-send">回复</button></div></div>
+        </div>
+    </div>
+
+    <div id="twitter-settings-modal" class="twitter-modal" aria-hidden="true">
+        <div class="twitter-modal-card">
+            <div class="twitter-modal-header"><button class="twitter-icon-btn" id="twitter-settings-close" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button><div class="twitter-modal-title">推特设置</div><span style="width:42px"></span></div>
+            <div class="twitter-modal-body twitter-settings-grid">
+                <label>显示名<input id="twitter-setting-name" placeholder="你的昵称"></label>
+                <label>用户名 / Handle<input id="twitter-setting-handle" placeholder="@username"></label>
+                <label>个人简介<textarea id="twitter-setting-bio" placeholder="简介"></textarea></label>
+                <label>我的页面背景图 URL<input id="twitter-setting-cover" placeholder="https://... 或留空使用默认渐变"></label>
+                <div class="twitter-cover-preview" id="twitter-cover-preview"></div>
+                <div class="twitter-setting-row"><button class="twitter-lite-btn" id="twitter-cover-file-btn" type="button">选择本地背景图</button><button class="twitter-lite-btn" id="twitter-cover-reset-btn" type="button">恢复默认背景</button></div>
+                <input type="file" id="twitter-cover-file-input" class="hidden-file-input" accept="image/*">
+                <label>推特世界观 / 时间线设定<textarea id="twitter-setting-worldview" placeholder="告诉模型这个推特世界是什么氛围、哪些 char、user、NPC 会发什么内容"></textarea></label>
+                <label>推特 NPC 池<textarea id="twitter-setting-npcs" placeholder="每行一个 NPC：昵称｜@handle｜人设/常发内容方向｜头像URL(可空)"></textarea></label>
+                <div class="twitter-setting-row"><button class="twitter-lite-btn" id="twitter-npc-default-btn" type="button">恢复默认 NPC</button><button class="twitter-lite-btn" id="twitter-npc-append-btn" type="button">补充默认 NPC</button></div>
+                <div class="twitter-npc-hint">刷新时间线时会从 user、char、NPC 三类账号里混合生成推文；NPC 不依赖通讯录，也会参与评论/热搜氛围。</div>
+                <button class="twitter-save-settings" id="twitter-save-settings">保存设置</button>
+                <button class="twitter-save-settings" id="twitter-reset-feed" style="background:#eff3f4;color:#0f1419;">清空并重建时间线</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 聊天应用：桌面聊天图标入口 -->
+    <div id="chat-app-page" class="settings-page-overlay chat-page-overlay">
+        <div id="chat-view-messages" class="chat-view active">
+            <div class="chat-app-header">
+                <button class="chat-icon-btn" id="chat-close-btn" title="返回" aria-label="返回">
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <span class="chat-app-title">消息</span>
+                <button class="chat-icon-btn" id="chat-add-thread-btn" title="添加" aria-label="添加">
+                    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+            </div>
+            <div id="chat-add-panel" class="chat-add-panel">
+                <button id="chat-add-friend-option" class="chat-add-option" type="button"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="16" y1="11" x2="22" y2="11"></line></svg><span>添加好友</span></button>
+                <button id="chat-create-group-option" class="chat-add-option" type="button"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>发起群聊</span></button>
+            </div>
+            <div id="chat-group-tabs" class="chat-group-tabs"></div>
+            <div class="chat-list" id="chat-thread-list"></div>
+        </div>
+
+        <div id="chat-view-moments" class="chat-view moments-view">
+            <div class="moments-hero" id="moments-hero">
+                <div class="moments-float-left">
+                    <button class="moments-plain-btn" id="moments-back-btn" title="返回消息" aria-label="返回消息">
+                        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                </div>
+                <div class="moments-float-right">
+                    <button class="moments-plain-btn" id="moments-refresh-btn" title="刷新" aria-label="刷新">
+                        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg>
+                    </button>
+                    <button class="moments-plain-btn" id="moments-camera-btn" title="相机" aria-label="相机">
+                        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    </button>
+                </div>
+                <div class="moments-hero-name" id="moments-nickname">昵称</div>
+            </div>
+            <div class="moments-profile-wrap">
+                <div class="moments-profile-line">
+                    <div class="moments-avatar-box"><img id="moments-avatar-img" src="https://picsum.photos/id/1025/180/140" alt="头像"></div>
+                </div>
+                <div class="moments-signature" id="moments-signature">个性签名</div>
+            </div>
+            <div class="moments-feed" id="moments-feed"></div>
+            <input type="file" id="moments-cover-file" class="chat-hidden-file" accept="image/*">
+            <input type="file" id="moments-avatar-file" class="chat-hidden-file" accept="image/*">
+        </div>
+
+        <div id="chat-view-home" class="chat-view">
+            <div class="chat-home-scroll">
+                <div class="chat-home-avatar" id="chat-home-avatar-box"><img id="chat-home-avatar-img" src="https://picsum.photos/id/1025/500/360" alt="头像"></div>
+                <div class="chat-home-name" id="chat-home-name">昵称</div>
+                <div class="chat-home-sign" id="chat-home-sign">个性签名</div>
+                <input type="file" id="chat-home-avatar-file" class="chat-hidden-file" accept="image/*">
+                <div class="chat-home-actions">
+                    <button class="chat-home-action" data-feature="资产钱包"><span class="home-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.75 8.75a2.25 2.25 0 0 1 2.25-2.25h8.15c.86 0 1.68.34 2.29.95l1.31 1.3"></path><path d="M4.75 9.75h14.5A1.75 1.75 0 0 1 21 11.5v5.25A2.25 2.25 0 0 1 18.75 19H7a2.25 2.25 0 0 1-2.25-2.25z"></path><path d="M15.75 13.4h5.25"></path><circle cx="16.1" cy="13.4" r=".55" fill="currentColor" stroke="none"></circle></svg></span><span>资产钱包</span><span class="home-action-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6.5 15.5 12 10 17.5"></path></svg></span></button>
+                    <button class="chat-home-action" data-feature="面具预设"><span class="home-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 8.3c2.1-1.05 4.36-1.25 6.08-.46.73.34 1.55.34 2.28 0 1.72-.79 3.98-.59 6.08.46"></path><path d="M5.2 8.65c.1 4.8 2.86 8.05 6.8 8.05s6.7-3.25 6.8-8.05"></path><path d="M8.75 10.95c.46-.34 1.04-.34 1.5 0"></path><path d="M13.75 10.95c.46-.34 1.04-.34 1.5 0"></path><path d="M9.25 13.75c1.45.95 4.05.95 5.5 0"></path></svg></span><span>面具预设</span><span class="home-action-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6.5 15.5 12 10 17.5"></path></svg></span></button>
+                    <button class="chat-home-action" data-feature="表情包库"><span class="home-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5.25" width="14" height="14" rx="4.4"></rect><circle cx="9.6" cy="10.45" r=".52" fill="currentColor" stroke="none"></circle><circle cx="14.4" cy="10.45" r=".52" fill="currentColor" stroke="none"></circle><path d="M8.85 14.1c.88.86 1.9 1.24 3.15 1.24s2.27-.38 3.15-1.24"></path><path d="M8 5.35 6.45 3.95"></path></svg></span><span>表情包库</span><span class="home-action-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6.5 15.5 12 10 17.5"></path></svg></span></button>
+                    <button class="chat-home-action" data-feature="聊天美化"><span class="home-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.8A2.8 2.8 0 0 1 7.8 5h7.45a2.8 2.8 0 0 1 2.8 2.8v4.55a2.8 2.8 0 0 1-2.8 2.8H10l-3.75 2.9v-2.9H7.8A2.8 2.8 0 0 1 5 12.35z"></path><path d="M8.2 9.2h6.1"></path><path d="M8.2 11.85h4.05"></path><path d="m17.15 4.35.5 1.1 1.2.13-.9.82.24 1.18-1.04-.6-1.04.6.24-1.18-.9-.82 1.2-.13z"></path></svg></span><span>全局聊天美化</span><span class="home-action-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6.5 15.5 12 10 17.5"></path></svg></span></button>
+                    <button class="chat-home-action wide" data-feature="全局美化"><span class="home-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.9 1.55 3.35 3.67.4-2.73 2.48.74 3.61L12 12.87l-3.23 1.87.74-3.61-2.73-2.48 3.67-.4Z"></path><path d="M18.4 6.2v1.95"></path><path d="M17.42 7.17h1.96"></path><path d="M5.8 15.6v1.8"></path><path d="M4.9 16.5h1.8"></path></svg></span><span>全局美化</span><span class="home-action-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6.5 15.5 12 10 17.5"></path></svg></span></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-bottom-dock">
+            <button class="chat-tab-btn active" data-chat-tab="messages" aria-label="消息"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></button>
+            <button class="chat-tab-btn" data-chat-tab="moments" aria-label="朋友圈"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v4"></path><path d="M12 18v4"></path><path d="M2 12h4"></path><path d="M18 12h4"></path></svg></button>
+            <button class="chat-tab-btn" data-chat-tab="home" aria-label="主页"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg></button>
+        </div>
+    </div>
+
+    <div id="chat-sticker-page" class="chat-feature-page" aria-label="表情包库">
+        <div class="chat-feature-header">
+            <button id="chat-sticker-back" class="chat-feature-icon-btn" type="button" aria-label="返回"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="chat-feature-title">表情包库</div>
+            <div class="chat-feature-actions">
+                <button id="chat-sticker-add" class="chat-feature-icon-btn" type="button" aria-label="添加表情包"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+                <button id="chat-sticker-multi" class="chat-feature-icon-btn" type="button" aria-label="多选"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="6" height="6" rx="1.5"></rect><rect x="14" y="5" width="6" height="6" rx="1.5"></rect><rect x="4" y="15" width="6" height="6" rx="1.5"></rect><path d="m14 18 2 2 4-5"></path></svg></button>
+            </div>
+        </div>
+        <div id="chat-sticker-tabs" class="chat-group-tabs sticker-group-tabs"></div>
+        <div id="chat-sticker-content" class="chat-feature-content">
+            <div id="chat-sticker-grid" class="sticker-grid"></div>
+            <div id="chat-sticker-empty" class="sticker-empty">暂无表情包<br>点击右上角 + 批量添加 URL 和描述</div>
+        </div>
+        <div id="chat-sticker-bulk-actions" class="sticker-bottom-actions">
+            <button id="chat-sticker-move-selected" class="action-btn primary" type="button">移动分组</button>
+            <button id="chat-sticker-delete-selected" class="action-btn danger" type="button">删除选中</button>
+            <button id="chat-sticker-cancel-multi" class="action-btn" type="button">取消多选</button>
+        </div>
+    </div>
+
+    <div id="chat-beauty-page" class="chat-feature-page" aria-label="聊天美化">
+        <div class="chat-feature-header">
+            <button id="chat-beauty-back" class="chat-feature-icon-btn" type="button" aria-label="返回"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="chat-feature-title">聊天美化</div>
+            <button id="chat-beauty-save" class="chat-feature-icon-btn" type="button" aria-label="保存"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path></svg></button>
+        </div>
+        <div class="chat-feature-content">
+            <div class="beauty-scope-card" id="beauty-scope-card">当前：全局聊天美化</div>
+            <div class="beauty-preview" id="chat-beauty-preview"></div>
+            <div class="beauty-form-grid">
+                <div class="beauty-range-row"><label>头像尺寸 <b id="beauty-avatar-size-val">35px</b></label><input id="beauty-avatar-size" type="range" min="24" max="72" value="35"></div>
+                <div class="beauty-range-row"><label>头像圆角 <b id="beauty-avatar-radius-val">12px</b></label><input id="beauty-avatar-radius" type="range" min="0" max="36" value="12"></div>
+                <div class="beauty-range-row"><label>气泡文字 <b id="beauty-font-size-val">14px</b></label><input id="beauty-font-size" type="range" min="11" max="24" value="14"></div>
+                <div class="beauty-range-row"><label>气泡圆角 <b id="beauty-bubble-radius-val">18px</b></label><input id="beauty-bubble-radius" type="range" min="4" max="32" value="18"></div>
+                <div class="beauty-range-row"><label>气泡宽度 <b id="beauty-bubble-width-val">62vw</b></label><input id="beauty-bubble-width" type="range" min="48" max="82" value="62"></div>
+                <div class="beauty-range-row"><label>消息间距 <b id="beauty-message-gap-val">6px</b></label><input id="beauty-message-gap" type="range" min="0" max="20" value="6"></div>
+                <div class="beauty-color-row"><span>user 气泡颜色</span><input id="beauty-user-bubble" type="color" value="#929292"></div>
+                <div class="beauty-color-row"><span>char 气泡颜色</span><input id="beauty-ai-bubble" type="color" value="#ffffff"></div>
+                <div class="beauty-color-row"><span>user 文字颜色</span><input id="beauty-user-text" type="color" value="#ffffff"></div>
+                <div class="beauty-color-row"><span>char 文字颜色</span><input id="beauty-ai-text" type="color" value="#000000"></div>
+            </div>
+            <div class="Tutuwan-settings-section" style="margin-top:14px;">
+                <label class="Tutuwan-settings-label">聊天背景</label>
+                <input id="beauty-chat-bg" class="Tutuwan-settings-input" placeholder="图片 / GIF URL，或上传本地文件">
+                <div class="beauty-css-actions"><button id="beauty-chat-bg-file-btn" class="action-btn" type="button">上传背景</button><button id="beauty-chat-bg-clear" class="action-btn danger" type="button">清除背景</button></div>
+                <input id="beauty-chat-bg-file" class="theme-hidden-file" type="file" accept="image/gif,image/webp,image/*">
+            </div>
+            <div class="Tutuwan-settings-section" style="margin-top:14px;">
+                <label class="Tutuwan-settings-label">头像框 CSS（支持 png/gif 边框思路：outline / box-shadow / background-image）</label>
+                <input id="beauty-user-frame" class="Tutuwan-settings-input" placeholder="user头像框，如：3px solid #ff9abb">
+                <input id="beauty-ai-frame" class="Tutuwan-settings-input" style="margin-top:8px;" placeholder="char头像框，如：3px solid #9bd8ff">
+                <input id="beauty-user-frame-img" class="Tutuwan-settings-input" style="margin-top:8px;" placeholder="user头像框图片 URL（png/gif）">
+                <input id="beauty-ai-frame-img" class="Tutuwan-settings-input" style="margin-top:8px;" placeholder="char头像框图片 URL（png/gif）">
+                <div class="beauty-css-actions"><button id="beauty-user-frame-file-btn" class="action-btn" type="button">上传user头像框</button><button id="beauty-ai-frame-file-btn" class="action-btn" type="button">上传char头像框</button></div>
+                <input id="beauty-user-frame-file" class="theme-hidden-file" type="file" accept="image/png,image/gif,image/webp,image/*">
+                <input id="beauty-ai-frame-file" class="theme-hidden-file" type="file" accept="image/png,image/gif,image/webp,image/*">
+                <div class="beauty-frame-grid">
+                    <div class="beauty-range-row"><label>user框缩放 <b id="beauty-user-frame-scale-val">135%</b></label><input id="beauty-user-frame-scale" type="range" min="50" max="220" value="135"></div>
+                    <div class="beauty-range-row"><label>char框缩放 <b id="beauty-ai-frame-scale-val">135%</b></label><input id="beauty-ai-frame-scale" type="range" min="50" max="220" value="135"></div>
+                    <div class="beauty-range-row"><label>user框X <b id="beauty-user-frame-x-val">0px</b></label><input id="beauty-user-frame-x" type="range" min="-36" max="36" value="0"></div>
+                    <div class="beauty-range-row"><label>char框X <b id="beauty-ai-frame-x-val">0px</b></label><input id="beauty-ai-frame-x" type="range" min="-36" max="36" value="0"></div>
+                    <div class="beauty-range-row"><label>user框Y <b id="beauty-user-frame-y-val">0px</b></label><input id="beauty-user-frame-y" type="range" min="-36" max="36" value="0"></div>
+                    <div class="beauty-range-row"><label>char框Y <b id="beauty-ai-frame-y-val">0px</b></label><input id="beauty-ai-frame-y" type="range" min="-36" max="36" value="0"></div>
+                </div>
+            </div>
+            <div class="Tutuwan-settings-section">
+                <label class="Tutuwan-settings-label">美化预设</label>
+                <select id="beauty-preset-select" class="Tutuwan-settings-input"><option value="">选择已保存预设</option></select>
+                <div class="beauty-css-actions"><button id="beauty-preset-save" class="action-btn primary" type="button">保存为预设</button><button id="beauty-preset-delete" class="action-btn danger" type="button">删除预设</button></div>
+                <button id="beauty-clear-specific" class="action-btn danger" type="button" style="display:none;margin-top:10px;">清除当前 char 专属美化，恢复跟随全局</button>
+            </div>
+            <div class="Tutuwan-settings-section">
+                <label class="Tutuwan-settings-label">原 CSS 模板（可复制修改）</label>
+                <textarea id="beauty-base-css" class="Tutuwan-css-textarea" readonly></textarea>
+                <div class="beauty-css-actions"><button id="beauty-copy-template" class="action-btn" type="button">复制模板</button><button id="beauty-reset-css" class="action-btn danger" type="button">重置CSS</button></div>
+            </div>
+            <div class="Tutuwan-settings-section">
+                <label class="Tutuwan-settings-label">开发者模式：气泡 CSS（覆盖模板）</label>
+                <textarea id="beauty-bubble-css" class="Tutuwan-css-textarea" placeholder="写入 .Tutuwan.user .content / .Tutuwan.ai .content 等规则，保存后覆盖原CSS"></textarea>
+                <div class="beauty-css-actions"><button id="beauty-bubble-css-file-btn" class="action-btn" type="button">上传气泡CSS</button><button id="beauty-bubble-css-clear" class="action-btn danger" type="button">清空气泡CSS</button></div>
+                <input id="beauty-bubble-css-file" class="theme-hidden-file" type="file" accept=".css,text/css">
+            </div>
+            <div class="Tutuwan-settings-section">
+                <label class="Tutuwan-settings-label">开发者模式：全局 CSS（最后注入，优先级最高）</label>
+                <textarea id="beauty-global-css" class="Tutuwan-css-textarea" placeholder="写入任意聊天页面相关 CSS，保存后最后注入，覆盖前面所有CSS"></textarea>
+                <div class="beauty-css-actions"><button id="beauty-global-css-file-btn" class="action-btn" type="button">上传全局CSS</button><button id="beauty-global-css-clear" class="action-btn danger" type="button">清空全局CSS</button></div>
+                <input id="beauty-global-css-file" class="theme-hidden-file" type="file" accept=".css,text/css">
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-sticker-modal" class="chat-modal-mask" aria-label="添加表情包弹窗">
+        <div class="chat-modal-card">
+            <div class="chat-modal-title">批量添加表情包</div>
+            <div class="chat-modal-help">每行一个，兼容：URL：描述 / URL 描述 / 描述：URL / 描述 URL。会自动识别 http(s)、data:image、blob URL。</div>
+            <textarea id="chat-sticker-input" class="chat-modal-textarea" placeholder="https://example.com/a.gif 开心兔兔\nhttps://example.com/b.png：摸头\n晚安：https://example.com/c.webp\n撒花 https://example.com/d.gif"></textarea>
+            <div class="chat-modal-actions"><button id="chat-sticker-cancel" class="action-btn" type="button">取消</button><button id="chat-sticker-confirm" class="action-btn primary" type="button">添加</button></div>
+        </div>
+    </div>
+
+    <div id="chat-thoughts-page" class="chat-feature-page chat-secret-page" aria-label="心声">
+        <div class="chat-feature-header">
+            <button id="chat-thoughts-back" class="chat-feature-icon-btn" type="button" aria-label="返回"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="chat-feature-title">心声</div>
+            <div class="chat-feature-actions">
+                <button id="chat-thoughts-clear" class="chat-feature-icon-btn" type="button" aria-label="清空心声"><svg viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M7 7l1 13h8l1-13"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg></button>
+                <button id="chat-thoughts-generate" class="chat-feature-icon-btn" type="button" aria-label="刷新心声"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10"></path><path d="M20.5 15a9 9 0 0 1-14.9 3.4L1 14"></path></svg></button>
+            </div>
+        </div>
+        <div class="chat-secret-hero">
+            <div class="chat-secret-kicker">Inner Voice</div>
+            <div id="chat-thoughts-hero-title" class="chat-secret-hero-title">TA 此刻没说出口的话</div>
+            <div id="chat-thoughts-hero-sub" class="chat-secret-hero-sub">会根据当前聊天、人设、世界书与共同记忆生成。</div>
+        </div>
+        <div id="chat-thoughts-list" class="chat-feature-content chat-secret-list"></div>
+    </div>
+
+    <div id="chat-diary-page" class="chat-feature-page chat-secret-page" aria-label="日记">
+        <div class="chat-feature-header">
+            <button id="chat-diary-back" class="chat-feature-icon-btn" type="button" aria-label="返回"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="chat-feature-title">日记</div>
+            <div class="chat-feature-actions">
+                <button id="chat-diary-clear" class="chat-feature-icon-btn" type="button" aria-label="清空日记"><svg viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M7 7l1 13h8l1-13"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg></button>
+                <button id="chat-diary-generate" class="chat-feature-icon-btn" type="button" aria-label="刷新日记"><svg viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+            </div>
+        </div>
+        <div class="chat-secret-hero diary">
+            <div class="chat-secret-kicker">Private Diary</div>
+            <div id="chat-diary-hero-title" class="chat-secret-hero-title">TA 的私密日记本</div>
+            <div id="chat-diary-hero-sub" class="chat-secret-hero-sub">点击右上角新增，或按聊天需要记录。</div>
+        </div>
+        <div id="chat-diary-list" class="chat-feature-content chat-secret-list diary-list"></div>
+    </div>
+
+    <div id="chat-diary-detail-modal" class="chat-modal-mask" aria-label="日记详情">
+        <div class="chat-modal-card chat-diary-paper-card">
+            <div class="chat-diary-paper-head">
+                <div><span id="chat-diary-detail-day">--</span><small id="chat-diary-detail-month">MONTH</small></div>
+                <button id="chat-diary-detail-close" class="chat-feature-icon-btn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div id="chat-diary-detail-title" class="chat-diary-paper-title">日记标题</div>
+            <div id="chat-diary-detail-meta" class="chat-diary-paper-meta">Mood / Location</div>
+            <div id="chat-diary-detail-content" class="chat-diary-paper-content"></div>
+            <div class="chat-modal-actions"><button id="chat-diary-detail-delete" class="action-btn danger" type="button">删除</button><button id="chat-diary-detail-ok" class="action-btn primary" type="button">收起</button></div>
+        </div>
+    </div>
+
+
+
+
+    <div id="Tutuwan-chat-room" class="Tutuwan-chat-room" aria-label="聊天页面">
+        <div class="Tutuwan-room-header">
+            <button id="Tutuwan-room-back" class="Tutuwan-room-back" type="button" aria-label="返回消息列表"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="Tutuwan-room-title-wrap">
+                <span id="Tutuwan-room-title" class="Tutuwan-room-title Tutuwan-title-thought-trigger" role="button" tabindex="0" title="点击查看心声">聊天</span>
+                <span id="Tutuwan-room-subtitle" class="Tutuwan-room-subtitle"></span>
+            </div>
+            <button id="Tutuwan-room-more" class="Tutuwan-room-more" type="button" aria-label="聊天设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.4"></circle><circle cx="19" cy="12" r="1.4"></circle><circle cx="5" cy="12" r="1.4"></circle></svg></button>
+        </div>
+        <div id="Tutuwan-room-content" class="Tutuwan-room-content"></div>
+        <div id="Tutuwan-tools-panel" class="Tutuwan-tools-panel">
+            <button id="Tutuwan-tool-camera" class="Tutuwan-tool-item" type="button"><span class="Tutuwan-tool-icon"><svg viewBox="0 0 24 24"><path d="M4 7h3l2-2h6l2 2h3v12H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></span><span>相机</span></button>
+            <button id="Tutuwan-tool-image" class="Tutuwan-tool-item" type="button"><span class="Tutuwan-tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg></span><span>图片</span></button>
+            <button id="Tutuwan-tool-redpacket" class="Tutuwan-tool-item" type="button"><span class="Tutuwan-tool-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16v13H4z"></path><path d="M4 7l8 6 8-6"></path><path d="M12 13v5"></path></svg></span><span>红包</span></button>
+            <button id="Tutuwan-tool-transfer" class="Tutuwan-tool-item" type="button"><span class="Tutuwan-tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="3"></rect><path d="M7 10h6"></path><path d="M7 14h10"></path></svg></span><span>转账</span></button>
+            <button id="Tutuwan-tool-location" class="Tutuwan-tool-item" type="button"><span class="Tutuwan-tool-icon"><svg viewBox="0 0 24 24"><path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11z"></path><circle cx="12" cy="10" r="2.3"></circle></svg></span><span>定位</span></button>
+            <button id="Tutuwan-tool-phone" class="Tutuwan-tool-item" type="button"><span class="Tutuwan-tool-icon"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6.4 6.4l1.2-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6A2 2 0 0 1 22 16.9z"></path></svg></span><span>电话</span></button>
+            <button id="Tutuwan-tool-video" class="Tutuwan-tool-item" type="button"><span class="Tutuwan-tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"></rect><path d="M16 10l5-3v10l-5-3z"></path></svg></span><span>视频</span></button>
+            <button id="Tutuwan-tool-voice" class="Tutuwan-tool-item" type="button"><span class="Tutuwan-tool-icon"><svg viewBox="0 0 24 24"><path d="M12 15.6a3.6 3.6 0 0 0 3.6-3.6V6.8a3.6 3.6 0 1 0-7.2 0V12a3.6 3.6 0 0 0 3.6 3.6Z"></path><path d="M5.8 11.7a6.2 6.2 0 0 0 12.4 0"></path><path d="M12 18v3"></path><path d="M9 21h6"></path></svg></span><span>语音</span></button>
+            <button id="Tutuwan-tool-listen" class="Tutuwan-tool-item" type="button"><span class="Tutuwan-tool-icon"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span><span>一起听</span></button>
+            <button id="Tutuwan-tool-diary" class="Tutuwan-tool-item" type="button"><span class="Tutuwan-tool-icon"><svg viewBox="0 0 24 24"><path d="M6 3.8h9.2L19 7.6v12.6H6z"></path><path d="M15.2 3.8v4H19"></path><path d="M8.6 11h6.8"></path><path d="M8.6 14h6.8"></path><path d="M8.6 17h4.2"></path></svg></span><span>日记</span></button>
+        </div>
+        <div id="Tutuwan-quote-compose" class="Tutuwan-quote-compose">
+            <div id="Tutuwan-quote-compose-name" class="Tutuwan-quote-compose-name"></div>
+            <div id="Tutuwan-quote-compose-text" class="Tutuwan-quote-compose-text"></div>
+            <button id="Tutuwan-quote-compose-close" class="Tutuwan-quote-compose-close" type="button" aria-label="取消引用">×</button>
+        </div>
+        <div id="Tutuwan-msg-multi-bar" class="Tutuwan-msg-multi-bar">
+            <button id="Tutuwan-multi-delete" class="danger" type="button">删除选中</button>
+            <button id="Tutuwan-multi-cancel" type="button">取消多选</button>
+        </div>
+        <div id="Tutuwan-sticker-panel" class="Tutuwan-sticker-float-panel" aria-label="聊天表情包面板">
+            <div id="Tutuwan-sticker-panel-tabs" class="Tutuwan-sticker-panel-tabs"></div>
+            <div class="Tutuwan-sticker-panel-body">
+                <div id="Tutuwan-sticker-panel-grid" class="Tutuwan-sticker-panel-grid"></div>
+                <div id="Tutuwan-sticker-panel-empty" class="Tutuwan-sticker-panel-empty">暂无表情包<br>可到表情包库添加</div>
+            </div>
+        </div>
+        <div class="Tutuwan-room-footer">
+            <button id="Tutuwan-plus-btn" class="Tutuwan-footer-btn" type="button" aria-label="更多功能"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+            <textarea id="Tutuwan-msg-input" class="Tutuwan-msg-input" rows="1" placeholder="输入消息"></textarea>
+            <button id="Tutuwan-sticker-toggle" class="Tutuwan-sticker-btn footer-btn-side" type="button" aria-label="表情包"><svg class="Tutuwan-sticker-redraw-icon" viewBox="0 0 24 24" aria-hidden="true"><path class="sticker-back" d="M5.8 6.1h8.4a3.7 3.7 0 0 1 3.7 3.7v8.4a3.1 3.1 0 0 1-3.1 3.1H6.7a4 4 0 0 1-4-4V9.2a3.1 3.1 0 0 1 3.1-3.1Z"></path><path class="sticker-front" d="M8.2 2.7h7.45c.82 0 1.61.33 2.19.91l2.55 2.55c.58.58.91 1.37.91 2.19v7.45a3.5 3.5 0 0 1-3.5 3.5H8.2a3.5 3.5 0 0 1-3.5-3.5V6.2a3.5 3.5 0 0 1 3.5-3.5Z"></path><path class="sticker-corner" d="M15.35 3.05v3.38c0 1.23 1 2.22 2.22 2.22h3.38"></path><path class="sticker-spark" d="M11.9 8.2l1.05 2.3 2.3 1.05-2.3 1.05-1.05 2.3-1.05-2.3-2.3-1.05 2.3-1.05 1.05-2.3Z"></path><circle class="sticker-dot" cx="16.85" cy="14.65" r="1.15"></circle></svg></button>
+            <div id="Tutuwan-send-btn" class="Tutuwan-send-btn footer-btn-side send-btn" role="button" tabindex="0" aria-label="发送"><i class="fas fa-paper-plane" aria-hidden="true"></i></div>
+        </div>
+        <input id="Tutuwan-image-file" class="Tutuwan-hidden-file" type="file" accept="image/*">
+        <input id="Tutuwan-camera-file" class="Tutuwan-hidden-file" type="file" accept="image/*" capture="environment">
+    </div>
+
+
+
+    <div id="Tutuwan-chat-settings" class="Tutuwan-settings-page" aria-label="聊天设置">
+        <div class="Tutuwan-settings-header">
+            <button id="Tutuwan-settings-back" class="Tutuwan-settings-back" type="button" aria-label="返回聊天"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="Tutuwan-settings-title">聊天设置</div>
+            <div></div>
+        </div>
+        <div class="Tutuwan-settings-content">
+            <div class="Tutuwan-avatar-duo">
+                <div id="Tutuwan-setting-user-avatar-card" class="Tutuwan-setting-avatar-card">
+                    <img id="Tutuwan-setting-user-avatar" src="" alt="user头像">
+                    <span id="Tutuwan-setting-user-name">user</span>
+                </div>
+                <div id="Tutuwan-setting-char-avatar-card" class="Tutuwan-setting-avatar-card">
+                    <img id="Tutuwan-setting-char-avatar" src="" alt="char头像">
+                    <span id="Tutuwan-setting-char-name">char</span>
+                </div>
+            </div>
+            <div class="Tutuwan-settings-section">
+                <label class="Tutuwan-settings-label" for="Tutuwan-remark-input">备注</label>
+                <input id="Tutuwan-remark-input" class="Tutuwan-settings-input" type="text" placeholder="添加备注后优先展示备注">
+                <div class="Tutuwan-settings-actions" style="margin-top:10px;"><button id="Tutuwan-save-remark-btn" class="action-btn primary" type="button">保存备注</button><button id="Tutuwan-clear-remark-btn" class="action-btn" type="button">清空备注</button></div>
+            </div>
+            <div class="Tutuwan-settings-section">
+                <label class="Tutuwan-settings-label" for="Tutuwan-bg-url">更换聊天背景</label>
+                <input id="Tutuwan-bg-url" class="Tutuwan-settings-input" type="text" placeholder="图片 URL 或选择本地文件">
+                <div class="Tutuwan-settings-actions" style="margin-top:10px;"><button id="Tutuwan-bg-local-btn" class="action-btn" type="button">本地文件</button><button id="Tutuwan-save-bg-btn" class="action-btn primary" type="button">应用背景</button></div>
+                <button id="Tutuwan-reset-bg-btn" class="action-btn" type="button" style="margin-top:10px;">重置背景</button>
+            </div>
+            <div class="Tutuwan-settings-section">
+                <div class="Tutuwan-setting-row"><div><span class="Tutuwan-settings-label" style="margin-bottom:2px;">时间感知功能</span><div class="Tutuwan-settings-help">开启后，当前联系人数据会记录允许 char 感知时间。</div></div><div id="Tutuwan-time-aware-toggle" class="Tutuwan-toggle"></div></div>
+            </div>
+            <div class="Tutuwan-settings-section">
+                <div class="Tutuwan-setting-row"><div><span class="Tutuwan-settings-label" style="margin-bottom:2px;">线下模式</span><div class="Tutuwan-settings-help">开启后私聊输出长文本；群聊会进入线下群像剧情，保留成员发言、动作和场景推进。</div></div><div id="Tutuwan-offline-toggle" class="Tutuwan-toggle"></div></div>
+                <div id="Tutuwan-offline-panel" class="Tutuwan-offline-panel">
+                    <label class="Tutuwan-settings-label" for="Tutuwan-offline-wordcount">展开字数</label>
+                    <input id="Tutuwan-offline-wordcount" class="Tutuwan-settings-input" type="number" min="80" step="10" value="500" placeholder="默认 500 字">
+                    <label class="Tutuwan-settings-label" for="Tutuwan-offline-perspective" style="margin-top:12px;">输出视角</label>
+                    <select id="Tutuwan-offline-perspective" class="Tutuwan-settings-input Tutuwan-perspective-select">
+                        <option value="char">char / 群像视角</option>
+                        <option value="user">user 视角</option>
+                    </select>
+                    <label class="Tutuwan-settings-label" for="Tutuwan-offline-style" style="margin-top:12px;">文风输入栏</label>
+                    <textarea id="Tutuwan-offline-style" class="Tutuwan-settings-textarea" placeholder="例如：细腻、克制、生活感、心理描写多、对白少……"></textarea>
+                    <button id="Tutuwan-save-offline-btn" class="action-btn primary" type="button" style="margin-top:10px;">保存线下模式设置</button>
+                </div>
+            </div>
+            <div class="Tutuwan-settings-section">
+                <div class="Tutuwan-setting-row"><div><span class="Tutuwan-settings-label" style="margin-bottom:2px;">自动总结开关</span><div class="Tutuwan-settings-help">开启后达到阈值自动生成一条历史总结。</div></div><div id="Tutuwan-auto-summary-toggle" class="Tutuwan-toggle"></div></div>
+                <div id="Tutuwan-threshold-panel" class="Tutuwan-threshold-panel">
+                    <label class="Tutuwan-settings-label" for="Tutuwan-summary-threshold">展开总结阈值</label>
+                    <input id="Tutuwan-summary-threshold" class="Tutuwan-settings-input" type="number" min="2" step="1" placeholder="例如 20">
+                    <button id="Tutuwan-save-summary-btn" class="action-btn primary" type="button" style="margin-top:10px;">保存总结设置</button>
+                </div>
+                <div class="Tutuwan-settings-label" style="margin-top:14px;">历史总结列表</div>
+                <div id="Tutuwan-summary-list" class="Tutuwan-summary-list"></div>
+            </div>
+            <div class="Tutuwan-settings-section">
+                <button id="Tutuwan-open-beauty-btn" class="action-btn primary" type="button">专属聊天美化</button>
+                <div class="Tutuwan-settings-help" style="margin-top:8px;">这里只修改当前 char / 群聊的聊天外观，不影响其它联系人。我的页面里的聊天美化仍为所有 char 统一美化。</div>
+                <button id="Tutuwan-open-css-btn" class="action-btn" type="button" style="margin-top:10px;">聊天 CSS 页面入口</button>
+            </div>
+            <div class="Tutuwan-settings-section">
+                <div class="Tutuwan-settings-actions"><button id="Tutuwan-block-btn" class="action-btn danger" type="button">拉黑</button><button id="Tutuwan-clear-history-btn" class="action-btn danger" type="button">清空聊天记录</button></div>
+            </div>
+        </div>
+        <input id="Tutuwan-setting-avatar-file" class="Tutuwan-hidden-file" type="file" accept="image/*">
+        <input id="Tutuwan-bg-file" class="Tutuwan-hidden-file" type="file" accept="image/*">
+    </div>
+    <div id="Tutuwan-css-page" class="Tutuwan-css-page" aria-label="聊天 CSS 页面">
+        <div class="Tutuwan-css-header">
+            <button id="Tutuwan-css-back" class="Tutuwan-css-back" type="button" aria-label="返回设置"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="Tutuwan-css-title">聊天 CSS</div>
+            <div></div>
+        </div>
+        <div class="Tutuwan-css-content">
+            <div id="Tutuwan-css-scope" class="Tutuwan-css-note">当前聊天专属 CSS，会覆盖我的页面全局美化，但不影响其它 char。</div>
+            <textarea id="Tutuwan-css-textarea" class="Tutuwan-css-textarea" placeholder="写入当前聊天专属 CSS，例如：.Tutuwan.ai .content { font-style: italic; }"></textarea>
+            <div class="Tutuwan-css-actions">
+                <button id="Tutuwan-css-save" class="action-btn primary" type="button">保存当前聊天 CSS</button>
+                <button id="Tutuwan-css-template" class="action-btn" type="button">插入模板</button>
+                <button id="Tutuwan-css-clear" class="action-btn danger" type="button">清空 CSS</button>
+                <button id="Tutuwan-css-open-beauty" class="action-btn" type="button">打开完整美化</button>
+            </div>
+            <div class="Tutuwan-css-note">保存后会写入当前 char / 群聊的专属美化，不会修改“我的页面”的全局美化。</div>
+        </div>
+    </div>
+
+    <div id="chat-wallet-page" class="settings-page-overlay chat-wallet-page">
+        <div class="settings-header chat-wallet-header">
+            <svg id="close-chat-wallet-btn" class="chat-wallet-close" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.5">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>资产钱包</span>
+        </div>
+        <div class="settings-content chat-wallet-content">
+            <div class="wallet-balance-card">
+                <div class="wallet-balance-label">总资产</div>
+                <div id="wallet-balance-value" class="wallet-balance-value">¥0.00</div>
+                <div class="wallet-balance-desc">支持充值与提现，账单明细会同步记录在下方列表。</div>
+                <div class="wallet-balance-actions">
+                    <button id="wallet-recharge-btn" class="wallet-action-btn" type="button">充值</button>
+                    <button id="wallet-withdraw-btn" class="wallet-action-btn light" type="button">提现</button>
+                </div>
+            </div>
+            <div class="wallet-bill-section">
+                <div class="wallet-section-title">账单</div>
+                <div id="wallet-bill-list" class="wallet-bill-list"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="Tutuwan-music-page" class="settings-page-overlay Tutuwan-music-page">
+        <div class="settings-header Tutuwan-music-header">
+            <svg id="close-Tutuwan-music-btn" class="Tutuwan-music-close" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.5">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>音乐</span>
+        </div>
+        <div class="settings-content Tutuwan-music-content">
+            <div id="Tutuwan-music-cover" class="Tutuwan-music-cover"><i class="fas fa-music" aria-hidden="true"></i></div>
+            <div id="Tutuwan-music-title" class="Tutuwan-music-title">夜色心事</div>
+            <div id="Tutuwan-music-artist" class="Tutuwan-music-artist">Tutuwan Radio</div>
+            <div id="Tutuwan-music-listener" class="Tutuwan-music-listener"></div>
+            <div class="Tutuwan-music-progress">
+                <div class="Tutuwan-music-track"><div id="Tutuwan-music-fill" class="Tutuwan-music-fill"></div></div>
+                <div class="Tutuwan-music-time"><span id="Tutuwan-music-now">00:00</span><span id="Tutuwan-music-total">03:20</span></div>
+            </div>
+            <div class="Tutuwan-music-controls">
+                <button id="Tutuwan-music-prev" class="Tutuwan-music-btn" type="button" aria-label="上一首"><svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8v16Z"></path><path d="M5 5v14"></path></svg></button>
+                <button id="Tutuwan-music-play" class="Tutuwan-music-btn primary" type="button" aria-label="播放"><svg id="Tutuwan-music-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7Z" fill="currentColor" stroke="none"></path></svg></button>
+                <button id="Tutuwan-music-next" class="Tutuwan-music-btn" type="button" aria-label="下一首"><svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4Z"></path><path d="M19 5v14"></path></svg></button>
+            </div>
+            <div class="Tutuwan-music-actions">
+                <button id="Tutuwan-music-together" class="Tutuwan-music-action" type="button">一起听</button>
+                <button id="Tutuwan-music-share-chat" class="Tutuwan-music-action light" type="button">发到当前聊天</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-mask-page" class="settings-page-overlay chat-mask-page">
+        <div class="settings-header chat-mask-header">
+            <svg id="close-chat-mask-btn" class="chat-mask-close" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.5">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>面具预设</span>
+            <button id="chat-mask-add-btn" class="chat-mask-add-btn" type="button" aria-label="添加面具预设"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+        <div class="settings-content">
+            <div id="chat-mask-list" class="chat-mask-list"></div>
+        </div>
+    </div>
+
+    <!-- 主题应用：底部 Dock 第三个图标入口 -->
+    <div id="theme-page" class="settings-page-overlay theme-page-overlay">
+        <div class="settings-header">
+            <svg id="close-theme-btn" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.5" style="margin-right: 12px; cursor: pointer;">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>主题应用</span>
+        </div>
+        <div class="settings-content">
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+                    更换壁纸
+                </h4>
+                <p class="theme-section-desc">支持图片、GIF、MP4/WebM 动态壁纸；本地文件会保存到浏览器本地数据中。</p>
+                <div id="theme-wallpaper-preview" class="theme-wallpaper-preview">默认壁纸</div>
+                <div class="settings-row" style="margin-top: 14px;">
+                    <span class="settings-label">壁纸 URL</span>
+                    <input type="text" id="theme-wallpaper-url" class="settings-input" placeholder="图片 / GIF / MP4 / WebM URL">
+                </div>
+                <div class="theme-grid-2">
+                    <button class="action-btn" id="theme-wallpaper-file-btn">选择本地壁纸</button>
+                    <button class="action-btn primary" id="theme-wallpaper-apply">应用壁纸</button>
+                    <button class="action-btn danger" id="theme-wallpaper-reset" style="grid-column: span 2;">重置默认壁纸</button>
+                </div>
+                <input type="file" id="theme-wallpaper-file" class="theme-hidden-file" accept="image/*,video/mp4,video/webm,video/ogg">
+            </div>
+
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16v12H4z"></path><path d="M8 10h.01"></path><path d="M4 16l5-5 4 4 3-3 4 4"></path></svg>
+                    聊天三页壁纸
+                </h4>
+                <p class="theme-section-desc">可分别上传消息页、朋友圈页、我的主页壁纸；支持图片与 GIF。</p>
+                <div id="theme-chat-wallpaper-grid" class="theme-chat-wallpaper-grid"></div>
+            </div>
+
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect></svg>
+                    更换图标
+                </h4>
+                <p class="theme-section-desc">每个桌面图标都可单独填 URL 或上传本地图片，并支持独立重置。</p>
+                <div id="theme-icon-list" class="theme-icon-list"></div>
+            </div>
+
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
+                    全局字体
+                </h4>
+                <p class="theme-section-desc">支持字体 URL 或本地字体文件；可调字体大小与粗细，点击应用后立即全局生效。</p>
+                <div class="settings-row">
+                    <span class="settings-label">字体 URL</span>
+                    <input type="text" id="theme-font-url" class="settings-input" placeholder=".woff / .woff2 / .ttf / .otf URL">
+                </div>
+                <div class="theme-grid-2">
+                    <button class="action-btn" id="theme-font-file-btn">选择本地字体</button>
+                    <button class="action-btn primary" id="theme-font-apply">应用字体</button>
+                </div>
+                <input type="file" id="theme-font-file" class="theme-hidden-file" accept=".woff,.woff2,.ttf,.otf,font/*">
+                <div class="settings-row" style="margin-top: 16px;">
+                    <div class="theme-inline-row">
+                        <span class="settings-label" style="flex: 1;">字体大小</span>
+                        <span id="theme-font-size-display" class="theme-value-pill">16px</span>
+                    </div>
+                    <input type="range" id="theme-font-size" min="12" max="22" step="1" value="16">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">字体粗细</span>
+                    <select id="theme-font-weight" class="settings-select">
+                        <option value="300">Light 300</option>
+                        <option value="400">Regular 400</option>
+                        <option value="500">Medium 500</option>
+                        <option value="600">SemiBold 600</option>
+                        <option value="700">Bold 700</option>
+                    </select>
+                </div>
+                <button class="action-btn danger" id="theme-font-reset">重置默认字体</button>
+            </div>
+
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6"></path><path d="M9 21H3v-6"></path><path d="M21 3l-7 7"></path><path d="M3 21l7-7"></path></svg>
+                    缩放 UI
+                </h4>
+                <p class="theme-section-desc">一键缩放全局 UI，范围 90% 到 110%，并支持恢复默认比例。</p>
+                <div class="theme-inline-row">
+                    <span class="settings-label" style="flex: 1;">当前比例</span>
+                    <span id="theme-ui-scale-display" class="theme-value-pill">100%</span>
+                </div>
+                <input type="range" id="theme-ui-scale" min="90" max="110" step="1" value="100">
+                <div class="theme-grid-2" style="margin-top: 10px;">
+                    <button class="action-btn primary" id="theme-ui-apply">应用缩放</button>
+                    <button class="action-btn danger" id="theme-ui-reset">重置默认</button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M16 3h3a2 2 0 0 1 2 2v3"></path><path d="M8 21H5a2 2 0 0 1-2-2v-3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+                    一键全屏
+                </h4>
+                <p class="theme-section-desc">点击后进入全屏，并隐藏虚拟系统状态栏；再次点击恢复。</p>
+                <button class="action-btn primary" id="theme-fullscreen-toggle">一键隐藏系统状态栏</button>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<!-- 新增：配置与帮助指南弹窗 -->
+
+
+<div id="chat-mask-modal" class="modal-overlay chat-form-modal">
+    <div class="modal-content">
+        <h3 id="chat-mask-modal-title">添加面具预设</h3>
+        <div class="input-group">
+            <div class="chat-avatar-edit-row">
+                <div class="chat-avatar-preview"><img id="chat-mask-avatar-preview" src="https://picsum.photos/id/1025/160/160" alt="面具头像"></div>
+                <div class="chat-avatar-edit-tools">
+                    <input type="text" id="chat-mask-avatar-url-input" placeholder="user 头像图片 URL">
+                    <label class="chat-avatar-local-btn">本地文件<input type="file" id="chat-mask-avatar-file" accept="image/*"></label>
+                </div>
+            </div>
+            <input type="text" id="chat-mask-name-input" placeholder="user 姓名">
+            <textarea id="chat-mask-setting-input" class="chat-form-textarea" placeholder="user 设定内容"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button id="chat-mask-cancel-btn" class="cancel-btn" type="button">取消</button>
+            <button id="chat-mask-save-btn" class="save-btn" type="button">保存</button>
+        </div>
+        <button id="chat-mask-delete-btn" class="modal-confirm-btn chat-form-danger" type="button" style="display:none;">删除该预设</button>
+    </div>
+</div>
+
+<div id="chat-friend-modal" class="modal-overlay chat-form-modal">
+    <div class="modal-content">
+        <h3 id="chat-friend-modal-title">添加好友</h3>
+        <div class="input-group">
+            <div class="chat-dual-avatar-wrap">
+                <div class="chat-avatar-row-title">char 头像</div>
+                <div class="chat-avatar-edit-row">
+                    <div class="chat-avatar-preview"><img id="chat-friend-avatar-preview" src="https://picsum.photos/seed/new-char/160/160" alt="联系人头像"></div>
+                    <div class="chat-avatar-edit-tools">
+                        <input type="text" id="chat-friend-avatar-url-input" placeholder="char 头像图片 URL">
+                        <label class="chat-avatar-local-btn">本地文件<input type="file" id="chat-friend-avatar-file" accept="image/*"></label>
+                    </div>
+                </div>
+                <div class="chat-avatar-row-title">user 头像 / 面具</div>
+                <div class="chat-avatar-edit-row">
+                    <div class="chat-avatar-preview"><img id="chat-friend-user-avatar-preview" src="https://picsum.photos/id/1025/160/160" alt="user 头像"></div>
+                    <div class="chat-avatar-edit-tools">
+                        <input type="text" id="chat-friend-user-avatar-url-input" placeholder="user 头像图片 URL">
+                        <label class="chat-avatar-local-btn">本地文件<input type="file" id="chat-friend-user-avatar-file" accept="image/*"></label>
+                    </div>
+                </div>
+                <select id="chat-friend-mask-select" class="chat-form-select"><option value="">不绑定 user 面具预设</option></select>
+                <div class="chat-multi-help">可直接编辑 user 信息；选择面具只用于快速带入，不会限制字数。</div>
+            </div>
+            <input type="text" id="chat-friend-name-input" placeholder="char 姓名">
+            <textarea id="chat-friend-setting-input" class="chat-form-textarea" placeholder="char 设定内容"></textarea>
+            <input type="text" id="chat-friend-user-name-input" placeholder="user 姓名">
+            <textarea id="chat-friend-user-setting-input" class="chat-form-textarea" placeholder="user 设定内容"></textarea>
+            <input type="text" id="chat-friend-voice-id-input" class="chat-form-input" placeholder="VOICE ID（char 音色 ID，如 tutumaru_01）">
+            <select id="chat-friend-worldbook-select" class="chat-form-select chat-multi-select chat-worldbook-hidden-select" multiple></select>
+            <div id="chat-friend-worldbook-picker" class="chat-worldbook-picker">
+                <button type="button" id="chat-friend-worldbook-field" class="chat-worldbook-field" aria-expanded="false">
+                    <span id="chat-friend-worldbook-summary" class="chat-worldbook-summary chat-worldbook-placeholder">关联世界书（可多选）</span>
+                    <svg class="chat-worldbook-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10.5 12 15.5 17 10.5"></path></svg>
+                </button>
+                <div id="chat-friend-worldbook-panel" class="chat-worldbook-panel" aria-label="关联世界书选项"></div>
+            </div>
+            <div class="chat-multi-help">char 关联世界书可多选；点击上方关联世界书字段即可勾选多个世界书。</div>
+            <select id="chat-friend-group-select" class="chat-form-select"></select>
+        </div>
+        <div class="modal-actions">
+            <button id="chat-friend-cancel-btn" class="cancel-btn" type="button">取消</button>
+            <button id="chat-friend-save-btn" class="save-btn" type="button">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="help-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 340px; padding: 24px 24px 20px;">
+        <h3 id="help-title" style="margin-bottom: 12px; color: var(--pink-dark);">使用指南</h3>
+        <div id="help-body" style="font-size: 13px; color: var(--gray-text); line-height: 1.6; max-height: 60vh; overflow-y: auto; text-align: justify; padding-right: 4px;">
+            <!-- 内容由 JS 动态填入 -->
+        </div>
+        <button class="save-btn modal-confirm-btn" style="margin-top: 20px;" onclick="closeHelpModal()">我知道了</button>
+    </div>
+</div>
+
+
+
+<!-- 全局页面弹窗：统一替代浏览器弹窗 -->
+<div id="global-dialog" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content" style="max-width: 330px; padding: 24px 24px 20px;">
+        <h3 id="global-dialog-title" style="margin-bottom: 4px; color: var(--pink-dark);">兔兔丸提示</h3>
+        <div id="global-dialog-message" class="global-dialog-message"></div>
+        <div id="global-dialog-input-wrap" class="input-group" style="display: none; margin-top: 2px;">
+            <input type="text" id="global-dialog-input" placeholder="请输入内容...">
+        </div>
+        <div class="global-dialog-actions">
+            <button id="global-dialog-cancel" class="cancel-btn" type="button">取消</button>
+            <button id="global-dialog-ok" class="save-btn" type="button">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 模型选择弹窗：拉取模型后自动弹出 -->
+<div id="model-picker-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content model-picker-content">
+        <h3 style="margin-bottom: 2px; color: var(--pink-dark);">选择模型</h3>
+        <p class="model-picker-subtitle">点击下方模型会自动填入“模型选择”；也可以关闭后直接点击模型输入框手动输入。</p>
+        <input type="text" id="model-picker-search" class="model-picker-search" placeholder="搜索模型名...">
+        <div id="model-picker-list" class="model-picker-list"></div>
+        <div class="modal-actions" style="margin-top: 2px;">
+            <button class="cancel-btn" id="model-picker-close" type="button">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 全新精致更换图片与文案弹窗 -->
+<div id="image-edit-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="modal-title">更换图片</h3>
+        
+        <!-- 单图输入组 -->
+        <div class="input-group" id="single-image-inputs" style="display: none;">
+            <input type="text" id="img-url-input" placeholder="图片 URL">
+            <div class="file-input-wrapper">
+                <button class="file-btn">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    本地文件
+                </button>
+                <input type="file" id="img-file-input" accept="image/*">
+            </div>
+        </div>
+
+        <!-- 多图输入组 (针对左侧组件) -->
+        <div class="input-group" id="multi-image-inputs" style="display: none; gap: 10px;">
+            <div class="multi-img-row">
+                <input type="text" id="img-url-input-0" placeholder="图片 URL">
+                <div class="file-input-wrapper">
+                    <button class="file-btn">本地文件</button>
+                    <input type="file" id="img-file-input-0" accept="image/*">
+                </div>
+            </div>
+            <div class="multi-img-row">
+                <input type="text" id="img-url-input-1" placeholder="图片 URL">
+                <div class="file-input-wrapper">
+                    <button class="file-btn">本地文件</button>
+                    <input type="file" id="img-file-input-1" accept="image/*">
+                </div>
+            </div>
+            <div class="multi-img-row">
+                <input type="text" id="img-url-input-2" placeholder="图片 URL">
+                <div class="file-input-wrapper">
+                    <button class="file-btn">本地文件</button>
+                    <input type="file" id="img-file-input-2" accept="image/*">
+                </div>
+            </div>
+        </div>
+
+        <!-- 纯文案输入组 -->
+        <div class="input-group" id="text-inputs" style="display: none;">
+            <input type="text" id="text-edit-input" placeholder="输入新文案...">
+        </div>
+
+        <div class="modal-actions">
+            <button id="modal-cancel-btn" class="cancel-btn">取消</button>
+            <button id="modal-save-btn" class="save-btn">确定</button>
+        </div>
+    </div>
+</div>
+
+<script src="./tutuwan-shield.min.js"></script>
+<script src="./app.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "兔兔丸机",
+  "short_name": "兔兔丸机",
+  "description": "兔兔丸机 PWA 前端版，包含本地激活锁。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFCFD",
+  "theme_color": "#FFF0F5",
+  "icons": [
+    {
+      "src": "./assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
